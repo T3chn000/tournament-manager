@@ -1,0 +1,1 @@
+Tournament management system written in Java. Supports Swiss and knockout formats, automatic pairing generation, result tracking and ranking calculation.
