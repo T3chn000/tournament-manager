@@ -8,6 +8,8 @@ public class Match {
     }
     private final Player player1;
     private final Player player2;
+    private Integer player1Points;
+    private Integer player2Points;
     private Result result;
 
     public Match(Player player1, Player player2) {
@@ -25,6 +27,10 @@ public class Match {
                     : Result.PLAYER1_WIN;
         }
     }
+    public Match(Player player1, Player player2, int player1Points, int player2Points) {
+        this(player1, player2);
+        setPoints(player1Points, player2Points);
+    }
 
     public Player getPlayer1() {return this.player1;}
     public Player getPlayer2() {return this.player2;}
@@ -41,6 +47,12 @@ public class Match {
         }
         return result == Result.PLAYER1_WIN ? player2 : player1;
     }
+    public String getScore() {
+        if (player1Points == null || player2Points == null) {
+            return "-";
+        }
+        return player1Points + " : " + player2Points;
+    }
     public boolean isPlayed() {
         return result != null;
     }
@@ -54,13 +66,27 @@ public class Match {
         return player1.equals(player) || player2.equals(player);
     }
 
-    public void setResult(Result result) {
-        if (result == null) {
-            throw new IllegalArgumentException("Result cannot be null");
+    private void updateResult() {
+        if (player1Points > player2Points) {
+            this.result = Result.PLAYER1_WIN;
+        } else if (player2Points > player1Points) {
+            this.result = Result.PLAYER2_WIN;
+        } else {
+            this.result = Result.DRAW;
         }
-        if (this.result != null) {
-            throw new IllegalStateException("Match already has result");
+    }
+
+    public void setPoints(int player1Points, int player2Points) {
+        if (isByeMatch()) {
+            throw new IllegalStateException("Cannot set points for BYE match");
         }
-        this.result = result;
+
+        if (player1Points < 0 || player2Points < 0) {
+            throw new IllegalArgumentException("Points cannot be negative");
+        }
+
+        this.player1Points = player1Points;
+        this.player2Points = player2Points;
+        updateResult();
     }
 }
