@@ -1,16 +1,11 @@
 package main.java.com.tournament.model;
 
 public class Match {
-    public enum Result {
-        PLAYER1_WIN,
-        PLAYER2_WIN,
-        DRAW
-    }
     private final Player player1;
     private final Player player2;
     private Integer player1Points;
     private Integer player2Points;
-    private Result result;
+    private MatchResult result;
 
     public Match(Player player1, Player player2) {
         if (player1 == null || player2 == null) {
@@ -23,8 +18,8 @@ public class Match {
         this.player2 = player2;
         if (isByeMatch()) {
             this.result = player1.equals(Player.BYE)
-                    ? Result.PLAYER2_WIN
-                    : Result.PLAYER1_WIN;
+                    ? MatchResult.PLAYER2_WIN
+                    : MatchResult.PLAYER1_WIN;
         }
     }
     public Match(Player player1, Player player2, int player1Points, int player2Points) {
@@ -34,18 +29,18 @@ public class Match {
 
     public Player getPlayer1() {return this.player1;}
     public Player getPlayer2() {return this.player2;}
-    public Result getResult() {return this.result;}
+    public MatchResult getMatchResult() {return this.result;}
     public Player getWinner() {
-        if (result == null || result == Result.DRAW) {
+        if (result == null || result == MatchResult.DRAW) {
             return null;
         }
-        return result == Result.PLAYER1_WIN ? player1 : player2;
+        return result == MatchResult.PLAYER1_WIN ? player1 : player2;
     }
     public Player getLoser() {
-        if (result == null || result == Result.DRAW) {
+        if (result == null || result == MatchResult.DRAW) {
             return null;
         }
-        return result == Result.PLAYER1_WIN ? player2 : player1;
+        return result == MatchResult.PLAYER1_WIN ? player2 : player1;
     }
     public String getScore() {
         if (player1Points == null || player2Points == null) {
@@ -57,7 +52,7 @@ public class Match {
         return result != null;
     }
     public boolean isDraw() {
-        return result == Result.DRAW;
+        return result == MatchResult.DRAW;
     }
     public boolean isByeMatch() {
         return hasPlayer(Player.BYE);
@@ -66,13 +61,13 @@ public class Match {
         return player1.equals(player) || player2.equals(player);
     }
 
-    private void updateResult() {
+    private void updateMatchResult() {
         if (player1Points > player2Points) {
-            this.result = Result.PLAYER1_WIN;
+            this.result = MatchResult.PLAYER1_WIN;
         } else if (player2Points > player1Points) {
-            this.result = Result.PLAYER2_WIN;
+            this.result = MatchResult.PLAYER2_WIN;
         } else {
-            this.result = Result.DRAW;
+            this.result = MatchResult.DRAW;
         }
     }
 
@@ -87,6 +82,6 @@ public class Match {
 
         this.player1Points = player1Points;
         this.player2Points = player2Points;
-        updateResult();
+        updateMatchResult();
     }
 }
