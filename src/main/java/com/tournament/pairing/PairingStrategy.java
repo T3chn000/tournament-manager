@@ -1,4 +1,8 @@
-package main.java.com.tournament.pairing;
+package com.tournament.pairing;
 
-public class PairingStrategy {
+import com.tournament.model.Round;
+import com.tournament.model.Tournament;
+
+public interface PairingStrategy {
+   Round generateNextRound(Tournament tournament);
 }

@@ -1,4 +1,4 @@
-package main.java.com.tournament.controller;
+package com.tournament.controller;
 
 public class TournamentController {
 }

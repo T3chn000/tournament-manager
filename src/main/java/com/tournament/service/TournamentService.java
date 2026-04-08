@@ -1,4 +1,4 @@
-package main.java.com.tournament.service;
+package com.tournament.service;
 
 public class TournamentService {
 }

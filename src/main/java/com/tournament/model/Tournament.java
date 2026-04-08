@@ -1,4 +1,4 @@
-package main.java.com.tournament.model;
+package com.tournament.model;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package main.java.com.tournament.model;
+package com.tournament.model;
 
 public class Match {
     private final Player player1;

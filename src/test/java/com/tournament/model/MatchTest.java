@@ -1,8 +1,8 @@
-package test.java.com.tournament.model;
+package com.tournament.model;
 
-import main.java.com.tournament.model.Match;
-import main.java.com.tournament.model.MatchResult;
-import main.java.com.tournament.model.Player;
+import com.tournament.model.Match;
+import com.tournament.model.MatchResult;
+import com.tournament.model.Player;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
