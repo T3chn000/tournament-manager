@@ -1,4 +1,4 @@
-package main.java.com.tournament.pairing;
+package com.tournament.pairing;
 
 public class SwissPairingStrategy {
 }

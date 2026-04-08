@@ -1,4 +1,4 @@
-package main.java.com.tournament.model;
+package com.tournament.model;
 
 import java.util.List;
 import java.util.Objects;

@@ -1,4 +1,4 @@
-package main.java.com.tournament;
+package com.tournament;
 
 public class Main {
 }

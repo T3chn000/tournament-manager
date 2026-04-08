@@ -1,4 +1,4 @@
-package main.java.com.tournament.model;
+package com.tournament.model;
 
 public enum TournamentType {
     SWISS,

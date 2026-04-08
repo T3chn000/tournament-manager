@@ -1,4 +1,4 @@
-package main.java.com.tournament.persistence;
+package com.tournament.persistence;
 
 public class TournamentRepository {
 }
