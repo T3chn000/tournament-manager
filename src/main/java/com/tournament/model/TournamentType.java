@@ -1,6 +1,22 @@
 package com.tournament.model;
 
+import com.tournament.pairing.*;
+
 public enum TournamentType {
-    SWISS,
-    KNOCKOUT
+
+    KNOCKOUT {
+        @Override
+        public PairingStrategy createStrategy() {
+            return new KnockoutPairingStrategy();
+        }
+    },
+
+    SWISS {
+        @Override
+        public PairingStrategy createStrategy() {
+            return new SwissPairingStrategy();
+        }
+    };
+
+    public abstract PairingStrategy createStrategy();
 }
