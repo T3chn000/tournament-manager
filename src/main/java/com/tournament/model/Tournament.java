@@ -1,5 +1,7 @@
 package com.tournament.model;
 
+import com.tournament.pairing.PairingStrategy;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,6 +66,16 @@ public class Tournament {
         }
         started = true;
     }
+    public Round generateNextRound() {
+        if (!started) {
+            throw new IllegalStateException("Tournament not started");
+        }
 
+        PairingStrategy strategy = type.createStrategy();
+        Round round = strategy.generateNextRound(this);
+
+        rounds.add(round);
+        return round;
+    }
 
 }

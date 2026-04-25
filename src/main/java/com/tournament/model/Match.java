@@ -84,4 +84,8 @@ public class Match {
         this.player2Points = player2Points;
         updateMatchResult();
     }
+    @Override
+    public String toString() {
+        return player1 + " vs " + player2 + result;
+    }
 }
