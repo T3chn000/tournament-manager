@@ -5,10 +5,52 @@ import com.tournament.model.Match;
 import com.tournament.model.Tournament;
 import com.tournament.model.Round;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class KnockoutPairingStrategy implements PairingStrategy {
+    private final Random random = new Random();
+
+    @Override
+    public Round generateNextRound(Tournament tournament) {
+
+        List<Player> players;
+
+        if (tournament.getCurrentRound() == null) {
+            players = new ArrayList<>(tournament.getPlayers());
+            validateNoDuplicates(players);
+            Collections.shuffle(players, random);
+        } else {
+            Round last = tournament.getCurrentRound();
+            if (!last.isFinished()) {
+                throw new IllegalStateException("Previous round not finished");
+            }
+
+            players = getPlayersForNextRound(tournament);
+        }
+
+        int n = players.size();
+
+        if (n == 1) {
+            throw new IllegalStateException("Tournament finished");
+        }
+
+        int nextPower = getNextPowerOf2(n);
+        int byeCount = nextPower - n;
+
+        List<Match> matches = new ArrayList<>();
+
+        for (int i = 0; i < byeCount; i++) {
+            matches.add(new Match(players.get(i), Player.BYE));
+        }
+
+        for (int i = byeCount; i < players.size(); i += 2) {
+            matches.add(new Match(players.get(i), players.get(i + 1)));
+        }
+
+        return new Round(tournament.getRoundCount() + 1, matches);
+    }
+
+    /*  Stara wersja bez wstępnej rundy.
     @Override
     public Round generateNextRound(Tournament tournament) {
         if (tournament == null)
@@ -27,6 +69,7 @@ public class KnockoutPairingStrategy implements PairingStrategy {
 
         return new Round(nextRoundNumber, matches);
     }
+    */
 
     private List<Player> getPlayersForNextRound(Tournament tournament) {
         Round lastRound = tournament.getCurrentRound();
@@ -69,5 +112,19 @@ public class KnockoutPairingStrategy implements PairingStrategy {
         }
 
         return matches;
+    }
+    private void validateNoDuplicates(List<Player> players) {
+        Set<Player> set = new HashSet<>(players);
+        if (set.size() != players.size()) {
+            throw new IllegalArgumentException("Duplicate players detected");
+        }
+    }
+
+    private int getNextPowerOf2(int n) {
+        int power = 1;
+        while (power < n) {
+            power *= 2;
+        }
+        return power;
     }
 }

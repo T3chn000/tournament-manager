@@ -43,7 +43,7 @@ public class Tournament {
         if (rounds.isEmpty()) {
             return null;
         }
-        return rounds.get(rounds.size() - 1);
+        return rounds.getLast();
     }
 
     public void addRound(Round round) {
