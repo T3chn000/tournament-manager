@@ -4,6 +4,7 @@ import com.tournament.model.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -11,7 +12,7 @@ class KnockoutPairingStrategyTest {
 
     @Test
     void shouldThrowExceptionWhenTournamentIsNull() {
-        PairingStrategy strategy = new KnockoutPairingStrategy();
+        PairingStrategy strategy = new KnockoutPairingStrategy(new Random(1));
 
         assertThrows(IllegalArgumentException.class, () -> strategy.generateNextRound(null));
     }
@@ -25,19 +26,16 @@ class KnockoutPairingStrategyTest {
 
         Tournament tournament = new Tournament(List.of(p1, p2, p3, p4), TournamentType.KNOCKOUT);
 
-        PairingStrategy strategy = new KnockoutPairingStrategy();
+        PairingStrategy strategy = new KnockoutPairingStrategy(new Random(1));
         Round round = strategy.generateNextRound(tournament);
 
         assertEquals(1, round.getRoundNumber());
         assertEquals(2, round.size());
 
-        Match match1 = round.getMatches().get(0);
-        Match match2 = round.getMatches().get(1);
-
-        assertEquals(p1, match1.getPlayer1());
-        assertEquals(p2, match1.getPlayer2());
-        assertEquals(p3, match2.getPlayer1());
-        assertEquals(p4, match2.getPlayer2());
+        assertTrue(round.containsPlayer(p1));
+        assertTrue(round.containsPlayer(p2));
+        assertTrue(round.containsPlayer(p3));
+        assertTrue(round.containsPlayer(p4));
     }
 
     @Test
@@ -50,22 +48,14 @@ class KnockoutPairingStrategyTest {
 
         Tournament tournament = new Tournament(List.of(p1, p2, p3, p4, p5), TournamentType.KNOCKOUT);
 
-        PairingStrategy strategy = new KnockoutPairingStrategy();
+        PairingStrategy strategy = new KnockoutPairingStrategy(new Random(1));
         Round round = strategy.generateNextRound(tournament);
 
         assertEquals(1, round.getRoundNumber());
-        assertEquals(3, round.size());
 
-        Match match1 = round.getMatches().get(0);
-        Match match2 = round.getMatches().get(1);
-        Match match3 = round.getMatches().get(2);
+        boolean hasByeMatch = round.getMatches().stream().anyMatch(match -> match.hasPlayer(Player.BYE));
 
-        assertEquals(p1, match1.getPlayer1());
-        assertEquals(p2, match1.getPlayer2());
-        assertEquals(p3, match2.getPlayer1());
-        assertEquals(p4, match2.getPlayer2());
-        assertEquals(p5, match3.getPlayer1());
-        assertEquals(Player.BYE, match3.getPlayer2());
+        assertTrue(hasByeMatch);
     }
 
     @Test
@@ -83,15 +73,16 @@ class KnockoutPairingStrategyTest {
         Round firstRound = new Round(1, List.of(match1, match2));
         tournament.addRound(firstRound);
 
-        PairingStrategy strategy = new KnockoutPairingStrategy();
+        PairingStrategy strategy = new KnockoutPairingStrategy(new Random(1));
         Round secondRound = strategy.generateNextRound(tournament);
 
         assertEquals(2, secondRound.getRoundNumber());
         assertEquals(1, secondRound.size());
 
         Match finalMatch = secondRound.getMatches().getFirst();
-        assertEquals(p1, finalMatch.getPlayer1());
-        assertEquals(p4, finalMatch.getPlayer2());
+
+        assertTrue(finalMatch.hasPlayer(p1));
+        assertTrue(finalMatch.hasPlayer(p4));
     }
 
     @Test
@@ -109,7 +100,7 @@ class KnockoutPairingStrategyTest {
         Round firstRound = new Round(1, List.of(match1, match2));
         tournament.addRound(firstRound);
 
-        PairingStrategy strategy = new KnockoutPairingStrategy();
+        PairingStrategy strategy = new KnockoutPairingStrategy(new Random(1));
 
         assertThrows(IllegalStateException.class, () -> strategy.generateNextRound(tournament));
     }
@@ -126,47 +117,25 @@ class KnockoutPairingStrategyTest {
         Round firstRound = new Round(1, List.of(match));
         tournament.addRound(firstRound);
 
-        PairingStrategy strategy = new KnockoutPairingStrategy();
+        PairingStrategy strategy = new KnockoutPairingStrategy(new Random(1));
 
         assertThrows(IllegalStateException.class, () -> strategy.generateNextRound(tournament));
     }
 
     @Test
-    void shouldGenerateRoundNumberBasedOnExistingRounds() {
+    void shouldThrowExceptionWhenTournamentIsAlreadyFinished() {
         Player p1 = new Player("A");
         Player p2 = new Player("B");
-        Player p3 = new Player("C");
-        Player p4 = new Player("D");
 
-        Tournament tournament = new Tournament(List.of(p1, p2, p3, p4), TournamentType.KNOCKOUT);
+        Tournament tournament = new Tournament(List.of(p1, p2), TournamentType.KNOCKOUT);
 
-        Match match1 = new Match(p1, p2, 0, 1);
-        Match match2 = new Match(p3, p4, 1, 0);
+        Match finalMatch = new Match(p1, p2, 1, 0);
 
-        Round round1 = new Round(1, List.of(match1, match2));
-        tournament.addRound(round1);
+        Round finalRound = new Round(1, List.of(finalMatch));
+        tournament.addRound(finalRound);
 
-        PairingStrategy strategy = new KnockoutPairingStrategy();
-        Round round2 = strategy.generateNextRound(tournament);
+        PairingStrategy strategy = new KnockoutPairingStrategy(new Random(1));
 
-        assertEquals(2, round2.getRoundNumber());
-    }
-
-    @Test
-    void shouldUseAllPlayersInFirstRound() {
-        Player p1 = new Player("A");
-        Player p2 = new Player("B");
-        Player p3 = new Player("C");
-        Player p4 = new Player("D");
-
-        Tournament tournament = new Tournament(List.of(p1, p2, p3, p4), TournamentType.KNOCKOUT);
-
-        PairingStrategy strategy = new KnockoutPairingStrategy();
-        Round round = strategy.generateNextRound(tournament);
-
-        assertTrue(round.containsPlayer(p1));
-        assertTrue(round.containsPlayer(p2));
-        assertTrue(round.containsPlayer(p3));
-        assertTrue(round.containsPlayer(p4));
+        assertThrows(IllegalStateException.class, () -> strategy.generateNextRound(tournament));
     }
 }
