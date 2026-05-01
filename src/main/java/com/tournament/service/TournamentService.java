@@ -27,6 +27,10 @@ public class TournamentService {
     }
 
     public boolean isFinished(Tournament tournament) {
+        if (tournament == null) {
+            throw new IllegalArgumentException("Tournament cannot be null");
+        }
+
         Round current = tournament.getCurrentRound();
 
         if (current == null) return false;
