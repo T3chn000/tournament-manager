@@ -8,10 +8,21 @@ import com.tournament.model.Round;
 import java.util.*;
 
 public class KnockoutPairingStrategy implements PairingStrategy {
-    private final Random random = new Random();
+    private final Random random;
+
+    public KnockoutPairingStrategy() {
+        this(new Random());
+    }
+
+    public KnockoutPairingStrategy(Random random) {
+        this.random = random;
+    }
 
     @Override
     public Round generateNextRound(Tournament tournament) {
+
+        if (tournament == null)
+            throw new IllegalArgumentException("Tournament cannot be null");
 
         List<Player> players;
 
