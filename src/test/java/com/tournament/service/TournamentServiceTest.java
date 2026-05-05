@@ -25,6 +25,19 @@ class TournamentServiceTest {
     }
 
     @Test
+    void shouldCreateNamedTournament() {
+        TournamentService service = new TournamentService();
+
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = service.createTournament("Spring Cup", List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        assertEquals("Spring Cup", tournament.getName());
+        assertEquals(TournamentType.KNOCKOUT, tournament.getType());
+    }
+
+    @Test
     void shouldStartTournament() {
         TournamentService service = new TournamentService();
 
@@ -35,7 +48,43 @@ class TournamentServiceTest {
 
         service.startTournament(tournament);
 
+        assertEquals(TournamentState.STARTED, tournament.getState());
         assertTrue(tournament.isStarted());
+    }
+
+    @Test
+    void shouldAddPlayerToTournament() {
+        TournamentService service = new TournamentService();
+
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+        Player p3 = new Player("C");
+
+        Tournament tournament = service.createTournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        service.addPlayer(tournament, p3);
+
+        assertEquals(3, tournament.getPlayers().size());
+        assertTrue(tournament.getPlayers().contains(p3));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAddingPlayerToNullTournament() {
+        TournamentService service = new TournamentService();
+
+        assertThrows(IllegalArgumentException.class, () -> service.addPlayer(null, new Player("A")));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAddingNullPlayer() {
+        TournamentService service = new TournamentService();
+
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = service.createTournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        assertThrows(IllegalArgumentException.class, () -> service.addPlayer(tournament, null));
     }
 
     @Test
@@ -125,6 +174,41 @@ class TournamentServiceTest {
         match.setPoints(1, 0);
 
         assertTrue(service.isFinished(tournament));
+        assertEquals(TournamentState.FINISHED, tournament.getState());
+    }
+
+    @Test
+    void shouldReturnFalseWhenFinalRoundHasDraw() {
+        TournamentService service = new TournamentService();
+
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = service.createTournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        service.startTournament(tournament);
+
+        Round round = service.generateNextRound(tournament);
+        Match match = round.getMatches().getFirst();
+        match.setPoints(1, 1);
+
+        assertFalse(service.isFinished(tournament));
+        assertEquals(TournamentState.STARTED, tournament.getState());
+    }
+
+    @Test
+    void shouldReturnTrueWhenTournamentIsAlreadyMarkedFinished() {
+        TournamentService service = new TournamentService();
+
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = service.createTournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        service.startTournament(tournament);
+        tournament.finish();
+
+        assertTrue(service.isFinished(tournament));
     }
 
     @Test
@@ -132,5 +216,23 @@ class TournamentServiceTest {
         TournamentService service = new TournamentService();
 
         assertThrows(IllegalArgumentException.class, () -> service.isFinished(null));
+    }
+
+    @Test
+    void shouldSimulateRoundWithoutChangingByeMatch() {
+        TournamentService service = new TournamentService();
+
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+        Match match = new Match(p1, p2);
+        Match byeMatch = new Match(new Player("C"), Player.BYE);
+        Round round = new Round(1, List.of(match, byeMatch));
+
+        service.simulateRound(round);
+
+        assertTrue(match.isPlayed());
+        assertTrue(byeMatch.isPlayed());
+        assertTrue(byeMatch.isByeMatch());
+        assertEquals("-", byeMatch.getScore());
     }
 }

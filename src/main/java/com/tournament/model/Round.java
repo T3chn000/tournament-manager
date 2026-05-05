@@ -63,4 +63,21 @@ public class Round {
     public boolean isFinished() {
         return matches.stream().allMatch(Match::isPlayed);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("Round ")
+                .append(roundNumber)
+                .append(isFinished() ? " [finished]" : " [in progress]");
+
+        for (int i = 0; i < matches.size(); i++) {
+            builder.append(System.lineSeparator())
+                    .append("  ")
+                    .append(i + 1)
+                    .append(". ")
+                    .append(matches.get(i));
+        }
+
+        return builder.toString();
+    }
 }

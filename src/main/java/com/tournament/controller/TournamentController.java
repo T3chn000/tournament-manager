@@ -49,6 +49,10 @@ public class TournamentController {
     private void createTournament() {
         System.out.print("Tournament name: ");
         String name = scanner.nextLine();
+        if (name.isBlank()) {
+            System.out.println("Tournament name cannot be empty.");
+            return;
+        }
 
         TournamentType type = chooseType();
 
@@ -69,10 +73,17 @@ public class TournamentController {
             return;
         }
 
-        Tournament t = service.createTournament(players, type);
-        tournaments.add(t);
+        Tournament t;
+        try {
+            t = service.createTournament(name, players, type);
+            tournaments.add(t);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Cannot create tournament: " + e.getMessage());
+            return;
+        }
 
-        System.out.println("Tournament created!");
+        System.out.println("Tournament created:");
+        printTournamentDetails(t);
     }
 
     private TournamentType chooseType() {
@@ -80,16 +91,18 @@ public class TournamentController {
         System.out.println("1. SWISS");
         System.out.println("2. KNOCKOUT");
 
-        int t = readInt();
+        while (true) {
+            int t = readInt();
 
-        return switch (t) {
-            case 1 -> TournamentType.SWISS;
-            case 2 -> TournamentType.KNOCKOUT;
-            default -> {
-                System.out.println("Invalid option!");
-                yield null;
+            switch (t) {
+                case 1:
+                    return TournamentType.SWISS;
+                case 2:
+                    return TournamentType.KNOCKOUT;
+                default:
+                    System.out.print("Invalid option. Choose 1 or 2: ");
             }
-        };
+        }
     }
 
     private void listTournaments() {
@@ -99,11 +112,16 @@ public class TournamentController {
         }
 
         for (int i = 0; i < tournaments.size(); i++) {
-            System.out.println(i + ": " + tournaments.get(i).toString());
+            System.out.println(i + ": " + tournaments.get(i));
         }
     }
 
     private void deleteTournament() {
+        if (tournaments.isEmpty()) {
+            System.out.println("No tournaments.");
+            return;
+        }
+
         listTournaments();
 
         System.out.print("Index to delete: ");
@@ -116,6 +134,11 @@ public class TournamentController {
     }
 
     private void manageTournament() {
+        if (tournaments.isEmpty()) {
+            System.out.println("No tournaments.");
+            return;
+        }
+
         listTournaments();
 
         System.out.print("Choose tournament: ");
@@ -137,6 +160,7 @@ public class TournamentController {
                 case 3 -> nextRound(t);
                 case 4 -> simulateTournament(t);
                 case 5 -> showRounds(t);
+                case 6 -> showPlayers(t);
                 case 0 -> managing = false;
                 default -> System.out.println("Invalid");
             }
@@ -150,6 +174,7 @@ public class TournamentController {
         System.out.println("3. Next round");
         System.out.println("4. Simulate tournament");
         System.out.println("5. Show rounds");
+        System.out.println("6. Show players");
         System.out.println("0. Back");
     }
 
@@ -162,8 +187,12 @@ public class TournamentController {
         System.out.print("Player name: ");
         String name = scanner.nextLine();
 
-        t.getPlayers().add(new Player(name));
-        System.out.println("Added.");
+        try {
+            service.addPlayer(t, new Player(name));
+            System.out.println("Added.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.out.println("Cannot add player: " + e.getMessage());
+        }
     }
 
     private void startTournament(Tournament t) {
@@ -172,49 +201,82 @@ public class TournamentController {
             return;
         }
 
-        service.startTournament(t);
-        System.out.println("Started.");
+        try {
+            service.startTournament(t);
+            System.out.println("Started.");
+        } catch (IllegalStateException e) {
+            System.out.println("Cannot start tournament: " + e.getMessage());
+        }
     }
 
     private void nextRound(Tournament t) {
         try {
             Round round = service.generateNextRound(t);
 
-            simulateRound(round);
+            service.simulateRound(round);
 
-            System.out.println("Round generated + simulated.");
+            System.out.println("Round generated and simulated:");
+            System.out.println(round);
         } catch (Exception e) {
             System.out.println("Cannot generate round: " + e.getMessage());
         }
     }
 
     private void simulateTournament(Tournament t) {
-        if (!t.isStarted()) {
+        if (t.getState() == TournamentState.CREATED) {
             System.out.println("Start tournament first!");
             return;
         }
-
-        while (!service.isFinished(t)) {
-            Round round = service.generateNextRound(t);
-            simulateRound(round);
+        if (t.getState() == TournamentState.FINISHED) {
+            System.out.println("Tournament already finished.");
+            printTournamentDetails(t);
+            return;
+        }
+        if (t.getType() == TournamentType.SWISS) {
+            System.out.println("Full automatic simulation is currently available for knockout tournaments.");
+            System.out.println("For Swiss tournaments, use Next round and review rounds manually.");
+            return;
         }
 
-        System.out.println("Tournament finished!");
-    }
+        try {
+            while (!service.isFinished(t)) {
+                Round round = service.generateNextRound(t);
+                service.simulateRound(round);
+                System.out.println(round);
+            }
 
-    private void simulateRound(Round round) {
-        Random rand = new Random();
-
-        for (Match m : round.getMatches()) {
-            int p1 = rand.nextInt(2);
-            int p2 = 1 - p1;
-
-            m.setPoints(p1, p2);
+            System.out.println("Tournament finished!");
+            printTournamentDetails(t);
+        } catch (Exception e) {
+            System.out.println("Cannot simulate tournament: " + e.getMessage());
         }
     }
 
     private void showRounds(Tournament t) {
+        if (t.getRounds().isEmpty()) {
+            System.out.println("No rounds yet.");
+            return;
+        }
+
         t.getRounds().forEach(System.out::println);
+    }
+
+    private void showPlayers(Tournament t) {
+        System.out.println("Players:");
+        List<Player> players = t.getPlayers();
+        for (int i = 0; i < players.size(); i++) {
+            Player player = players.get(i);
+            System.out.println((i + 1) + ". " + player.name() + " (" + player.playerId() + ")");
+        }
+    }
+
+    private void printTournamentDetails(Tournament t) {
+        System.out.println(t);
+        showPlayers(t);
+        if (t.getCurrentRound() != null) {
+            System.out.println("Current round:");
+            System.out.println(t.getCurrentRound());
+        }
     }
 
     private boolean isValidIndex(int i) {

@@ -135,4 +135,17 @@ class MatchTest {
         assertTrue(match.hasPlayer(p2));
         assertFalse(match.hasPlayer(new Player("Other")));
     }
+
+    @Test
+    void toStringShouldShowPlayersScoreAndWinner() {
+        Match match = new Match(p1, p2);
+        match.setPoints(2, 0);
+
+        String result = match.toString();
+
+        assertTrue(result.contains("A"));
+        assertTrue(result.contains("B"));
+        assertTrue(result.contains("2 : 0"));
+        assertTrue(result.contains("winner: A"));
+    }
 }
