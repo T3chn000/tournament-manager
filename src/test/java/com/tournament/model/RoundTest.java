@@ -176,4 +176,16 @@ class RoundTest {
 
         assertFalse(round.containsPlayer(p3));
     }
+
+    @Test
+    void toStringShouldShowRoundNumberAndMatches() {
+        Match match = new Match(p1, p2);
+        Round round = new Round(1, List.of(match));
+
+        String result = round.toString();
+
+        assertTrue(result.contains("Round 1"));
+        assertTrue(result.contains("A"));
+        assertTrue(result.contains("B"));
+    }
 }

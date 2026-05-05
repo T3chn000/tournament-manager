@@ -86,6 +86,8 @@ public class Match {
     }
     @Override
     public String toString() {
-        return player1 + " vs " + player2 + result;
+        String winner = getWinner() == null ? "-" : getWinner().name();
+        return "%s vs %s | score: %s | result: %s | winner: %s"
+                .formatted(player1.name(), player2.name(), getScore(), result == null ? "not played" : result, winner);
     }
 }

@@ -15,11 +15,35 @@ class TournamentTest {
 
         Tournament tournament = new Tournament(List.of(p1, p2), TournamentType.KNOCKOUT);
 
+        assertEquals("Tournament", tournament.getName());
         assertEquals(2, tournament.getPlayers().size());
         assertEquals(TournamentType.KNOCKOUT, tournament.getType());
         assertEquals(0, tournament.getRoundCount());
         assertNull(tournament.getCurrentRound());
+        assertEquals(TournamentState.CREATED, tournament.getState());
         assertFalse(tournament.isStarted());
+    }
+
+    @Test
+    void shouldCreateTournamentWithCustomName() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = new Tournament("Spring Cup", List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        assertEquals("Spring Cup", tournament.getName());
+        assertTrue(tournament.toString().contains("Spring Cup"));
+        assertTrue(tournament.toString().contains("KNOCKOUT"));
+        assertTrue(tournament.toString().contains("CREATED"));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenTournamentNameIsBlank() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> new Tournament("   ", List.of(p1, p2), TournamentType.KNOCKOUT));
     }
 
     @Test
@@ -47,6 +71,51 @@ class TournamentTest {
         Tournament tournament = new Tournament(List.of(p1, p2), TournamentType.KNOCKOUT);
 
         assertThrows(UnsupportedOperationException.class, () -> tournament.getPlayers().add(new Player("C")));
+    }
+
+    @Test
+    void shouldAddPlayerBeforeTournamentStarts() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+        Player p3 = new Player("C");
+
+        Tournament tournament = new Tournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        tournament.addPlayer(p3);
+
+        assertEquals(3, tournament.getPlayers().size());
+        assertTrue(tournament.getPlayers().contains(p3));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAddingNullPlayer() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = new Tournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        assertThrows(IllegalArgumentException.class, () -> tournament.addPlayer(null));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAddingPlayerAfterTournamentStarts() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = new Tournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+        tournament.start();
+
+        assertThrows(IllegalStateException.class, () -> tournament.addPlayer(new Player("C")));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAddingDuplicatePlayer() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = new Tournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        assertThrows(IllegalArgumentException.class, () -> tournament.addPlayer(p1));
     }
 
     @Test
@@ -127,7 +196,32 @@ class TournamentTest {
 
         tournament.start();
 
+        assertEquals(TournamentState.STARTED, tournament.getState());
         assertTrue(tournament.isStarted());
+    }
+
+    @Test
+    void shouldFinishStartedTournament() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = new Tournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+        tournament.start();
+
+        tournament.finish();
+
+        assertEquals(TournamentState.FINISHED, tournament.getState());
+        assertTrue(tournament.isStarted());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenFinishingTournamentBeforeStart() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = new Tournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        assertThrows(IllegalStateException.class, tournament::finish);
     }
 
     @Test
@@ -140,5 +234,17 @@ class TournamentTest {
         tournament.start();
 
         assertThrows(IllegalStateException.class, tournament::start);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenGeneratingRoundAfterTournamentFinished() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = new Tournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+        tournament.start();
+        tournament.finish();
+
+        assertThrows(IllegalStateException.class, tournament::generateNextRound);
     }
 }
