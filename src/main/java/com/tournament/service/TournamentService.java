@@ -61,7 +61,7 @@ public class TournamentService {
             int player2Points = random.nextInt(3);
             match.setPoints(player1Points, player2Points);
 
-            if (match.isDraw()) {
+            if (resolveDraws && match.isDraw()) {
                 Player tieBreakWinner = random.nextBoolean() ? match.getPlayer1() : match.getPlayer2();
                 match.resolveDraw(tieBreakWinner);
             }
