@@ -33,7 +33,7 @@ public class Round {
 
     public List<Match> getUnresolvedMatches() {
         return matches.stream()
-                .filter(m -> !m.isPlayed() || m.isDraw())
+                .filter(m -> !m.isPlayed() || m.getWinner() == null)
                 .toList();
     }
 
