@@ -213,7 +213,7 @@ public class TournamentController {
         try {
             Round round = service.generateNextRound(t);
 
-            service.simulateRound(round);
+            service.simulateRound(t, round);
 
             System.out.println("Round generated and simulated:");
             System.out.println(round);
@@ -241,7 +241,7 @@ public class TournamentController {
         try {
             while (!service.isFinished(t)) {
                 Round round = service.generateNextRound(t);
-                service.simulateRound(round);
+                service.simulateRound(t, round);
                 System.out.println(round);
             }
 
