@@ -196,4 +196,32 @@ class SwissPairingStrategyTest {
 
         assertDoesNotThrow(() -> strategy.generateNextRound(tournament));
     }
+
+    @Test
+    void shouldScoreResolvedDrawAsDrawInSwiss() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+        Player p3 = new Player("C");
+        Player p4 = new Player("D");
+        Player p5 = new Player("E");
+        Player p6 = new Player("F");
+
+        Tournament tournament = new Tournament(List.of(p1, p2, p3, p4, p5, p6), TournamentType.SWISS);
+
+        Match resolvedDraw = new Match(p1, p2, 1, 1);
+        resolvedDraw.resolveDraw(p1);
+        Match match2 = new Match(p3, p4, 2, 0);
+        Match match3 = new Match(p5, p6, 2, 0);
+
+        tournament.addRound(new Round(1, List.of(resolvedDraw, match2, match3)));
+
+        PairingStrategy strategy = new SwissPairingStrategy();
+        Round secondRound = strategy.generateNextRound(tournament);
+
+        // Najwięcej punktów mają gracze C i E, więc to oni rozgrywają kolejny mecz - gracze A i B mają po 1 punkcie pomimo rozstrzygnięcia remisu, zgodnie z zasadami SWISS dotyczącymi ich dopuszczania
+        boolean winnersPlayTogether = secondRound.getMatches().stream()
+                .anyMatch(match -> match.hasPlayer(p3) && match.hasPlayer(p5));
+
+        assertTrue(winnersPlayTogether);
+    }
 }

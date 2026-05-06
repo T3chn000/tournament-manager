@@ -6,6 +6,7 @@ public class Match {
     private Integer player1Points;
     private Integer player2Points;
     private MatchResult result;
+    private Player tieBreakWinner;
 
     public Match(Player player1, Player player2) {
         if (player1 == null || player2 == null) {
@@ -31,16 +32,22 @@ public class Match {
     public Player getPlayer2() {return this.player2;}
     public MatchResult getMatchResult() {return this.result;}
     public Player getWinner() {
-        if (result == null || result == MatchResult.DRAW) {
+        if (result == null) {
             return null;
         }
+
+        if (result == MatchResult.DRAW) {
+            return tieBreakWinner;
+        }
+
         return result == MatchResult.PLAYER1_WIN ? player1 : player2;
     }
     public Player getLoser() {
-        if (result == null || result == MatchResult.DRAW) {
+        Player winner = getWinner();
+        if (winner == null) {
             return null;
         }
-        return result == MatchResult.PLAYER1_WIN ? player2 : player1;
+        return winner.equals(player1) ? player2 : player1;
     }
     public String getScore() {
         if (player1Points == null || player2Points == null) {
@@ -59,6 +66,18 @@ public class Match {
     }
     public boolean hasPlayer(Player player) {
         return player1.equals(player) || player2.equals(player);
+    }
+
+    public void resolveDraw(Player winner) {
+        if (result != MatchResult.DRAW) {
+            throw new IllegalStateException("Only draw matches can be resolved");
+        }
+
+        if (!hasPlayer(winner) || winner.equals(Player.BYE)) {
+            throw new IllegalArgumentException("Tie-break winner must be one of match players");
+        }
+
+        this.tieBreakWinner = winner;
     }
 
     private void updateMatchResult() {
@@ -82,6 +101,7 @@ public class Match {
 
         this.player1Points = player1Points;
         this.player2Points = player2Points;
+        this.tieBreakWinner = null;
         updateMatchResult();
     }
     @Override

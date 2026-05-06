@@ -178,6 +178,26 @@ class TournamentServiceTest {
     }
 
     @Test
+    void shouldReturnTrueWhenFinalRoundDrawIsResolved() {
+        TournamentService service = new TournamentService();
+
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = service.createTournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        service.startTournament(tournament);
+
+        Round round = service.generateNextRound(tournament);
+        Match match = round.getMatches().getFirst();
+        match.setPoints(1, 1);
+        match.resolveDraw(p2);
+
+        assertTrue(service.isFinished(tournament));
+        assertEquals(TournamentState.FINISHED, tournament.getState());
+    }
+
+    @Test
     void shouldReturnFalseWhenFinalRoundHasDraw() {
         TournamentService service = new TournamentService();
 
@@ -191,6 +211,25 @@ class TournamentServiceTest {
         Round round = service.generateNextRound(tournament);
         Match match = round.getMatches().getFirst();
         match.setPoints(1, 1);
+
+        assertFalse(service.isFinished(tournament));
+        assertEquals(TournamentState.STARTED, tournament.getState());
+    }
+
+    @Test
+    void shouldNotFinishSwissTournamentAutomaticallyAfterRound() {
+        TournamentService service = new TournamentService();
+
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = service.createTournament(List.of(p1, p2), TournamentType.SWISS);
+
+        service.startTournament(tournament);
+
+        Round round = service.generateNextRound(tournament);
+        Match match = round.getMatches().getFirst();
+        match.setPoints(1, 0);
 
         assertFalse(service.isFinished(tournament));
         assertEquals(TournamentState.STARTED, tournament.getState());
@@ -224,15 +263,39 @@ class TournamentServiceTest {
 
         Player p1 = new Player("A");
         Player p2 = new Player("B");
-        Match match = new Match(p1, p2);
-        Match byeMatch = new Match(new Player("C"), Player.BYE);
-        Round round = new Round(1, List.of(match, byeMatch));
+        Player p3 = new Player("C");
 
-        service.simulateRound(round);
+        Tournament tournament = service.createTournament(List.of(p1, p2, p3), TournamentType.KNOCKOUT);
+        service.startTournament(tournament);
+        Round round = service.generateNextRound(tournament);
 
-        assertTrue(match.isPlayed());
+        Match byeMatch = round.getMatches().stream()
+                .filter(Match::isByeMatch)
+                .findFirst()
+                .orElseThrow();
+
+        service.simulateRound(tournament, round);
+
         assertTrue(byeMatch.isPlayed());
         assertTrue(byeMatch.isByeMatch());
         assertEquals("-", byeMatch.getScore());
+    }
+
+    @Test
+    void shouldAlwaysProduceWinnerWhenSimulatingKnockoutRound() {
+        TournamentService service = new TournamentService();
+
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        Tournament tournament = service.createTournament(List.of(p1, p2), TournamentType.KNOCKOUT);
+        service.startTournament(tournament);
+        Round round = service.generateNextRound(tournament);
+        Match match = round.getMatches().getFirst();
+
+        service.simulateRound(tournament, round);
+
+        assertTrue(match.isPlayed());
+        assertNotNull(match.getWinner());
     }
 }

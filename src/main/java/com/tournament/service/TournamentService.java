@@ -42,19 +42,29 @@ public class TournamentService {
         return tournament.generateNextRound();
     }
 
-    public void simulateRound(Round round) {
+    public void simulateRound(Tournament tournament, Round round) {
+        if (tournament == null) {
+            throw new IllegalArgumentException("Tournament cannot be null");
+        }
         if (round == null) {
             throw new IllegalArgumentException("Round cannot be null");
         }
+
+        boolean resolveDraws = tournament.getType() == TournamentType.KNOCKOUT;
 
         for (Match match : round.getMatches()) {
             if (match.isPlayed()) {
                 continue;
             }
 
-            int player1Points = random.nextInt(2);
-            int player2Points = 1 - player1Points;
+            int player1Points = random.nextInt(3);
+            int player2Points = random.nextInt(3);
             match.setPoints(player1Points, player2Points);
+
+            if (resolveDraws && match.isDraw()) {
+                Player tieBreakWinner = random.nextBoolean() ? match.getPlayer1() : match.getPlayer2();
+                match.resolveDraw(tieBreakWinner);
+            }
         }
     }
 
@@ -73,7 +83,9 @@ public class TournamentService {
 
         if (!current.isFinished()) return false;
 
-        // knockout: jeden zwycięzca
+        if (tournament.getType() != TournamentType.KNOCKOUT) return false;
+
+        // knockout: one winner
         long winners = current.getMatches().stream()
                 .map(Match::getWinner)
                 .filter(Objects::nonNull)

@@ -123,6 +123,34 @@ class KnockoutPairingStrategyTest {
     }
 
     @Test
+    void shouldGenerateNextRoundWhenDrawIsResolvedByTieBreak() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+        Player p3 = new Player("C");
+        Player p4 = new Player("D");
+
+        Tournament tournament = new Tournament(List.of(p1, p2, p3, p4), TournamentType.KNOCKOUT);
+
+        Match match1 = new Match(p1, p2, 1, 1);
+        match1.resolveDraw(p2);
+        Match match2 = new Match(p3, p4, 1, 0);
+
+        Round firstRound = new Round(1, List.of(match1, match2));
+        tournament.addRound(firstRound);
+
+        PairingStrategy strategy = new KnockoutPairingStrategy(new Random(1));
+        Round secondRound = strategy.generateNextRound(tournament);
+
+        assertEquals(2, secondRound.getRoundNumber());
+        assertEquals(1, secondRound.size());
+
+        Match finalMatch = secondRound.getMatches().getFirst();
+
+        assertTrue(finalMatch.hasPlayer(p2));
+        assertTrue(finalMatch.hasPlayer(p3));
+    }
+
+    @Test
     void shouldThrowExceptionWhenTournamentIsAlreadyFinished() {
         Player p1 = new Player("A");
         Player p2 = new Player("B");
