@@ -4,6 +4,7 @@ import com.tournament.model.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,6 +36,20 @@ class TournamentServiceTest {
 
         assertEquals("Spring Cup", tournament.getName());
         assertEquals(TournamentType.KNOCKOUT, tournament.getType());
+    }
+
+    @Test
+    void shouldCreateTournamentWithProvidedId() {
+        TournamentService service = new TournamentService();
+
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+        UUID id = UUID.randomUUID();
+
+        Tournament tournament = service.createTournament(id, "Spring Cup", List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        assertEquals(id, tournament.getTournamentId());
+        assertEquals("Spring Cup", tournament.getName());
     }
 
     @Test
