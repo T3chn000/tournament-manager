@@ -4,9 +4,11 @@ import com.tournament.pairing.PairingStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class Tournament {
 
+    private final UUID tournamentId;
     private final String name;
     private final List<Player> players;
     private final List<Round> rounds = new ArrayList<>();
@@ -19,6 +21,13 @@ public class Tournament {
     }
 
     public Tournament(String name, List<Player> players, TournamentType type) {
+        this(UUID.randomUUID(), name, players, type);
+    }
+
+    public Tournament(UUID tournamentId, String name, List<Player> players, TournamentType type) {
+        if (tournamentId == null) {
+            throw new IllegalArgumentException("Tournament ID cannot be null");
+        }
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Tournament name cannot be empty");
         }
@@ -29,9 +38,14 @@ public class Tournament {
             throw new IllegalArgumentException("Tournament type cannot be null");
         }
 
+        this.tournamentId = tournamentId;
         this.name = name;
         this.players = new ArrayList<>(players);
         this.type = type;
+    }
+
+    public UUID getTournamentId() {
+        return tournamentId;
     }
 
     public String getName() {
@@ -121,8 +135,8 @@ public class Tournament {
 
     @Override
     public String toString() {
-        return "%s [%s, %s, players: %d, rounds: %d]"
-                .formatted(name, type, state, players.size(), rounds.size());
+        return "%s (%s) [%s, %s, players: %d, rounds: %d]"
+                .formatted(name, tournamentId, type, state, players.size(), rounds.size());
     }
 
 }

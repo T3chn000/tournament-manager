@@ -5,6 +5,7 @@ import com.tournament.model.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.UUID;
 
 public class TournamentService {
 
@@ -16,6 +17,10 @@ public class TournamentService {
 
     public Tournament createTournament(String name, List<Player> players, TournamentType type) {
         return new Tournament(name, players, type);
+    }
+
+    public Tournament createTournament(UUID tournamentId, String name, List<Player> players, TournamentType type) {
+        return new Tournament(tournamentId, name, players, type);
     }
 
     public void startTournament(Tournament tournament) {
