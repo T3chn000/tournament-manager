@@ -26,6 +26,12 @@ public class Tournament {
             @JsonProperty("rounds") List<Round> rounds,
             @JsonProperty("type") TournamentType type,
             @JsonProperty("state") TournamentState state) {
+        if (tournamentId == null) {
+            throw new IllegalArgumentException("Tournament ID cannot be null");
+        }
+        if (players == null) {
+            throw new IllegalArgumentException("Players cannot be null");
+        }
         this.tournamentId = tournamentId;
         this.name = name;
         this.players = new ArrayList<>(players);
@@ -148,8 +154,8 @@ public class Tournament {
 
     @Override
     public String toString() {
-        return "%s (%s) [%s, %s, players: %d, rounds: %d]"
-                .formatted(name, tournamentId, type, state, players.size(), rounds.size());
+        return String.format("%s (%s) [%s, %s, players: %d, rounds: %d]", 
+            name, tournamentId, type, state, players.size(), rounds.size());
     }
 
 }
