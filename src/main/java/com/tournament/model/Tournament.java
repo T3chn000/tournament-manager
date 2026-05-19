@@ -51,7 +51,9 @@ public class Tournament {
     }
 
     public Tournament(UUID tournamentId, String name, List<Player> players, TournamentType type) {
-        this(tournamentId, name, players, new ArrayList<>(), type, TournamentState.CREATED);
+        if (tournamentId == null) {
+            throw new IllegalArgumentException("Tournament ID cannot be null");
+        }
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Tournament name cannot be empty");
         }
@@ -61,6 +63,11 @@ public class Tournament {
         if (type == null) {
             throw new IllegalArgumentException("Tournament type cannot be null");
         }
+
+        this.tournamentId = tournamentId;
+        this.name = name;
+        this.players = new ArrayList<>(players);
+        this.type = type;
     }
 
     public UUID getTournamentId() {

@@ -38,7 +38,6 @@ public class TournamentController {
 
             } catch (Exception e) {
                 System.out.println("Something went wrong. Please try again.");
-                e.printStackTrace();
             }
         }
     }

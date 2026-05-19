@@ -185,7 +185,7 @@ class TournamentServiceTest {
         service.startTournament(tournament);
 
         Round round = service.generateNextRound(tournament);
-        Match match = round.getMatches().get(0);
+        Match match = round.getMatches().getFirst();
         match.setPoints(1, 0);
 
         assertTrue(service.isFinished(tournament));
@@ -204,7 +204,7 @@ class TournamentServiceTest {
         service.startTournament(tournament);
 
         Round round = service.generateNextRound(tournament);
-        Match match = round.getMatches().get(0);
+        Match match = round.getMatches().getFirst();
         match.setPoints(1, 1);
         match.resolveDraw(p2);
 
@@ -224,7 +224,7 @@ class TournamentServiceTest {
         service.startTournament(tournament);
 
         Round round = service.generateNextRound(tournament);
-        Match match = round.getMatches().get(0);
+        Match match = round.getMatches().getFirst();
         match.setPoints(1, 1);
 
         assertFalse(service.isFinished(tournament));
@@ -243,7 +243,7 @@ class TournamentServiceTest {
         service.startTournament(tournament);
 
         Round round = service.generateNextRound(tournament);
-        Match match = round.getMatches().get(0);
+        Match match = round.getMatches().getFirst();
         match.setPoints(1, 0);
 
         assertFalse(service.isFinished(tournament));
@@ -306,7 +306,7 @@ class TournamentServiceTest {
         Tournament tournament = service.createTournament(List.of(p1, p2), TournamentType.KNOCKOUT);
         service.startTournament(tournament);
         Round round = service.generateNextRound(tournament);
-        Match match = round.getMatches().get(0);
+        Match match = round.getMatches().getFirst();
 
         service.simulateRound(tournament, round);
 
