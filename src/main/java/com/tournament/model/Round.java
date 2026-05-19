@@ -1,11 +1,14 @@
 package com.tournament.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 import java.util.Objects;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Round {
     private final int roundNumber;
     private final List<Match> matches;
@@ -43,6 +46,7 @@ public class Round {
                 .toList();
     }
 
+    @JsonIgnore
     public List<Player> getWinners() {
         if (!isFinished()) {
             throw new IllegalStateException("Round is not finished");

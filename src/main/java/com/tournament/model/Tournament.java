@@ -1,6 +1,7 @@
 package com.tournament.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tournament.pairing.PairingStrategy;
 
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Tournament {
 
     private final UUID tournamentId;
