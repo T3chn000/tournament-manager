@@ -44,7 +44,7 @@ public class TournamentRepository {
             try (Stream<Path> paths = Files.list(dirPath)) {
                 List<Path> files = paths
                         .filter(p -> p.getFileName().toString().startsWith("tournament_") && p.getFileName().toString().endsWith(".json"))
-                        .collect(Collectors.toList());
+                        .toList();
                 
                 for (Path path : files) {
                     try {
