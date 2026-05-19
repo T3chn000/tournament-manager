@@ -1,5 +1,8 @@
 package com.tournament.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -7,7 +10,10 @@ public class Round {
     private final int roundNumber;
     private final List<Match> matches;
 
-    public Round(int roundNumber, List<Match> matches) {
+    @JsonCreator
+    public Round(
+            @JsonProperty("roundNumber") int roundNumber,
+            @JsonProperty("matches") List<Match> matches) {
         if (roundNumber <= 0) {
             throw new IllegalArgumentException("Round number must be positive");
         }

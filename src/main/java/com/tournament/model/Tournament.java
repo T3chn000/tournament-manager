@@ -1,5 +1,7 @@
 package com.tournament.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tournament.pairing.PairingStrategy;
 
 import java.util.ArrayList;
@@ -16,6 +18,24 @@ public class Tournament {
 
     private TournamentState state = TournamentState.CREATED;
 
+    @JsonCreator
+    public Tournament(
+            @JsonProperty("tournamentId") UUID tournamentId,
+            @JsonProperty("name") String name,
+            @JsonProperty("players") List<Player> players,
+            @JsonProperty("rounds") List<Round> rounds,
+            @JsonProperty("type") TournamentType type,
+            @JsonProperty("state") TournamentState state) {
+        this.tournamentId = tournamentId;
+        this.name = name;
+        this.players = new ArrayList<>(players);
+        if (rounds != null) {
+            this.rounds.addAll(rounds);
+        }
+        this.type = type;
+        this.state = state;
+    }
+
     public Tournament(List<Player> players, TournamentType type) {
         this("Tournament", players, type);
     }
@@ -25,9 +45,7 @@ public class Tournament {
     }
 
     public Tournament(UUID tournamentId, String name, List<Player> players, TournamentType type) {
-        if (tournamentId == null) {
-            throw new IllegalArgumentException("Tournament ID cannot be null");
-        }
+        this(tournamentId, name, players, new ArrayList<>(), type, TournamentState.CREATED);
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Tournament name cannot be empty");
         }
@@ -37,11 +55,6 @@ public class Tournament {
         if (type == null) {
             throw new IllegalArgumentException("Tournament type cannot be null");
         }
-
-        this.tournamentId = tournamentId;
-        this.name = name;
-        this.players = new ArrayList<>(players);
-        this.type = type;
     }
 
     public UUID getTournamentId() {

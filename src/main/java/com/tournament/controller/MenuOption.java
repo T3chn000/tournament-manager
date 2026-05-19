@@ -5,6 +5,8 @@ public enum MenuOption {
     LIST("List tournaments"),
     MANAGE("Manage tournament"),
     DELETE("Delete tournament"),
+    SAVE("Save to file"),
+    LOAD("Load from file"),
     EXIT("Exit");
 
     private final String label;

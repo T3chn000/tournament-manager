@@ -1,6 +1,7 @@
 package com.tournament.controller;
 
 import com.tournament.model.*;
+import com.tournament.persistence.TournamentRepository;
 import com.tournament.service.TournamentService;
 
 import java.util.*;
@@ -9,9 +10,13 @@ public class TournamentController {
 
     private final Scanner scanner = new Scanner(System.in);
     private final TournamentService service = new TournamentService();
+    private final TournamentRepository repository = new TournamentRepository();
     private final List<Tournament> tournaments = new ArrayList<>();
 
     public void start() {
+        System.out.println("Loading saved tournaments...");
+        loadTournaments();
+
         boolean running = true;
 
         while (running) {
@@ -26,12 +31,35 @@ public class TournamentController {
                     case LIST -> listTournaments();
                     case MANAGE -> manageTournament();
                     case DELETE -> deleteTournament();
+                    case SAVE -> saveTournaments();
+                    case LOAD -> loadTournaments();
                     case EXIT -> running = false;
                 }
 
             } catch (Exception e) {
                 System.out.println("Something went wrong. Please try again.");
+                e.printStackTrace();
             }
+        }
+    }
+
+    private void saveTournaments() {
+        try {
+            repository.save(tournaments);
+            System.out.println("Saved " + tournaments.size() + " tournaments.");
+        } catch (Exception e) {
+            System.out.println("Error saving: " + e.getMessage());
+        }
+    }
+
+    private void loadTournaments() {
+        try {
+            List<Tournament> loaded = repository.load();
+            tournaments.clear();
+            tournaments.addAll(loaded);
+            System.out.println("Loaded " + tournaments.size() + " tournaments.");
+        } catch (Exception e) {
+            System.out.println("Error loading: " + e.getMessage());
         }
     }
 
