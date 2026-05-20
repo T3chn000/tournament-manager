@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefHeight="420.0" prefWidth="420.0" spacing="12.0" styleClass="dialog-root" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tournament.ui.controller.CreateTournamentDialogController">
+    <children>
+        <Label styleClass="dialog-title" text="New tournament" />
+
+        <GridPane hgap="10.0" vgap="10.0">
+            <children>
+                <Label text="Name" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                <TextField fx:id="tournamentNameField" promptText="Spring Cup" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                <Label text="Type" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                <ComboBox fx:id="tournamentTypeComboBox" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            </children>
+         <columnConstraints>
+            <ColumnConstraints />
+            <ColumnConstraints />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints />
+            <RowConstraints />
+         </rowConstraints>
+        </GridPane>
+
+        <VBox spacing="8.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label styleClass="section-title" text="Players" />
+                <HBox spacing="8.0">
+                    <children>
+                        <TextField fx:id="playerNameField" onAction="#onAddPlayer" promptText="Player name" HBox.hgrow="ALWAYS" />
+                        <Button onAction="#onAddPlayer" text="Add" />
+                        <Button onAction="#onRemovePlayer" text="Remove" />
+                    </children>
+                </HBox>
+                <ListView fx:id="playersListView" prefHeight="180.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+            </children>
+        </VBox>
+
+        <Label fx:id="errorLabel" styleClass="error-text" />
+
+        <HBox alignment="CENTER_RIGHT" spacing="8.0">
+            <children>
+                <Button onAction="#onCancel" text="Cancel" />
+                <Button onAction="#onCreate" styleClass="primary-button" text="Create" />
+            </children>
+        </HBox>
+    </children>
+    <padding>
+        <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
+    </padding>
+</VBox>
