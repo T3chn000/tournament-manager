@@ -277,11 +277,6 @@ public class TournamentController {
             printTournamentDetails(t);
             return;
         }
-        if (t.getType() == TournamentType.SWISS) {
-            System.out.println("Full automatic simulation is currently available for knockout tournaments.");
-            System.out.println("For Swiss tournaments, use Next round and review rounds manually.");
-            return;
-        }
 
         try {
             while (!service.isFinished(t)) {

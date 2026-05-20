@@ -12,6 +12,12 @@ public class SwissPairingStrategy implements PairingStrategy {
             throw new IllegalArgumentException("Tournament cannot be null");
         }
 
+        int maxRounds = (int) Math.ceil(Math.log(tournament.getPlayers().size()) / Math.log(2));
+
+        if (tournament.getRoundCount() >= maxRounds) {
+            throw new IllegalStateException("Tournament finished");
+        }
+
         Round lastRound = tournament.getCurrentRound();
 
         if (lastRound != null && !lastRound.isFinished()) {
