@@ -70,7 +70,7 @@ public class TournamentController {
     private void loadTournaments() {
         try {
             List<Tournament> loaded = repository.load();
-            tournaments.clear(); // czy konieczne?
+            tournaments.clear();
             tournaments.addAll(loaded);
             System.out.println("Loaded " + tournaments.size() + " tournaments.");
         } catch (Exception e) {

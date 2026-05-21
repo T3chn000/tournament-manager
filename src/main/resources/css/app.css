@@ -1,0 +1,65 @@
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: #f6f7f9;
+}
+
+.app-title {
+    -fx-font-size: 17px;
+    -fx-font-weight: 700;
+}
+
+.side-panel,
+.details-shell,
+.dialog-root {
+    -fx-background-color: #ffffff;
+}
+
+.section-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #48505a;
+}
+
+.details-title,
+.dialog-title,
+.empty-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #20242a;
+}
+
+.muted-text {
+    -fx-text-fill: #69717d;
+}
+
+.status-bar {
+    -fx-padding: 8 12 8 12;
+    -fx-background-color: #eef1f5;
+    -fx-text-fill: #3d4651;
+}
+
+.error-text {
+    -fx-text-fill: #b42318;
+}
+
+.primary-button {
+    -fx-font-weight: 700;
+}
+
+.action-toolbar {
+    -fx-background-color: #eef1f5;
+    -fx-padding: 7;
+}
+
+.table-action-button {
+    -fx-min-width: 88px;
+}
+
+.list-cell {
+    -fx-padding: 8;
+}
+
+.titled-pane > .title {
+    -fx-font-weight: 700;
+}

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefHeight="220.0" prefWidth="320.0" spacing="12.0" styleClass="dialog-root" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tournament.ui.controller.MatchResultDialogController">
+    <children>
+        <Label styleClass="dialog-title" text="Match result" />
+
+        <GridPane hgap="12.0" vgap="10.0">
+            <children>
+                <Label fx:id="player1Label" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                <Spinner fx:id="player1PointsSpinner" prefWidth="120.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                <Label fx:id="player2Label" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                <Spinner fx:id="player2PointsSpinner" prefWidth="120.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            </children>
+         <columnConstraints>
+            <ColumnConstraints />
+            <ColumnConstraints />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints />
+            <RowConstraints />
+         </rowConstraints>
+        </GridPane>
+
+        <Label fx:id="errorLabel" styleClass="error-text" />
+
+        <HBox alignment="CENTER_RIGHT" spacing="8.0">
+            <children>
+                <Button onAction="#onCancel" text="Cancel" />
+                <Button onAction="#onSave" styleClass="primary-button" text="Save" />
+            </children>
+        </HBox>
+    </children>
+    <padding>
+        <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
+    </padding>
+</VBox>
