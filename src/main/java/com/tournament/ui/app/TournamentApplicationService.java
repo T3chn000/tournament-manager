@@ -6,6 +6,7 @@ import com.tournament.model.Round;
 import com.tournament.model.Tournament;
 import com.tournament.model.TournamentState;
 import com.tournament.model.TournamentType;
+import com.tournament.persistence.TournamentRepository;
 import com.tournament.service.TournamentService;
 import com.tournament.ui.viewmodel.MatchView;
 import com.tournament.ui.viewmodel.PlayerRow;
@@ -14,6 +15,7 @@ import com.tournament.ui.viewmodel.RoundView;
 import com.tournament.ui.viewmodel.TournamentDetails;
 import com.tournament.ui.viewmodel.TournamentSummary;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,15 +25,36 @@ import java.util.Set;
 public class TournamentApplicationService {
     private final TournamentService tournamentService;
     private final RankingCalculator rankingCalculator;
+    private final TournamentRepository repository;
     private final List<Tournament> tournaments = new ArrayList<>();
 
     public TournamentApplicationService() {
-        this(new TournamentService(), new RankingCalculator());
+        this(new TournamentService(), new RankingCalculator(), new TournamentRepository());
     }
 
-    public TournamentApplicationService(TournamentService tournamentService, RankingCalculator rankingCalculator) {
+    public TournamentApplicationService(TournamentService tournamentService, RankingCalculator rankingCalculator, TournamentRepository repository) {
         this.tournamentService = tournamentService;
         this.rankingCalculator = rankingCalculator;
+        this.repository = repository;
+    }
+
+    public void loadSavedTournaments() {
+        try {
+            List<Tournament> loaded = repository.load();
+            tournaments.clear();
+            tournaments.addAll(loaded);
+        } catch (IOException e) {
+            throw new UiActionException("Failed to load saved tournaments: " + e.getMessage());
+        }
+    }
+
+    public void saveTournament(Tournament tournament) {
+        tournament = requireTournament(tournament);
+        try {
+            repository.save(tournament);
+        } catch (IOException e) {
+            throw new UiActionException("Failed to save tournament: " + e.getMessage());
+        }
     }
 
     public List<TournamentSummary> getTournaments() {
@@ -100,7 +123,7 @@ public class TournamentApplicationService {
         }
 
         try {
-            tournamentService.simulateRound(currentRound);
+            tournamentService.simulateRound(tournament, currentRound);
             tournamentService.isFinished(tournament);
         } catch (IllegalArgumentException | IllegalStateException e) {
             throw new UiActionException(e.getMessage());
@@ -119,7 +142,7 @@ public class TournamentApplicationService {
         try {
             while (!tournamentService.isFinished(tournament)) {
                 Round round = tournamentService.generateNextRound(tournament);
-                tournamentService.simulateRound(round);
+                tournamentService.simulateRound(tournament, round);
             }
         } catch (IllegalArgumentException | IllegalStateException e) {
             throw new UiActionException(e.getMessage());
