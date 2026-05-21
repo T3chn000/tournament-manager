@@ -74,8 +74,12 @@ public class MainController {
         configureTournamentList();
         configurePlayersTable();
         configureRankingTable();
+        try {
+            applicationService.loadSavedTournaments();
+        } catch (UiActionException e) {
+            showError("Failed to load saved tournaments: " + e.getMessage());
+        }
         refreshTournamentList(null);
-        showEmptyState();
     }
 
     @FXML
@@ -123,6 +127,7 @@ public class MainController {
                         controller.getTournamentType(),
                         controller.getPlayerNames()
                 );
+                applicationService.saveTournament(created);
                 refreshTournamentList(created);
                 setStatus("Tournament created");
             }
@@ -250,9 +255,20 @@ public class MainController {
         tournamentListView.setItems(FXCollections.observableArrayList(applicationService.getTournaments()));
         if (tournamentToSelect != null) {
             tournamentListView.getItems().stream()
-                    .filter(summary -> summary.tournament().equals(tournamentToSelect))
+                    .filter(summary -> summary.tournament().getTournamentId().equals(tournamentToSelect.getTournamentId()))
                     .findFirst()
-                    .ifPresent(summary -> tournamentListView.getSelectionModel().select(summary));
+                    .ifPresentOrElse(
+                            summary -> tournamentListView.getSelectionModel().select(summary),
+                            this::selectDefaultOrEmpty
+                    );
+        } else {
+            selectDefaultOrEmpty();
+        }
+    }
+
+    private void selectDefaultOrEmpty() {
+        if (!tournamentListView.getItems().isEmpty()) {
+            tournamentListView.getSelectionModel().select(0);
         } else {
             showEmptyState();
         }
@@ -420,6 +436,9 @@ public class MainController {
         try {
             Tournament tournamentToSelect = selectedTournament;
             action.run();
+            if (tournamentToSelect != null) {
+                applicationService.saveTournament(tournamentToSelect);
+            }
             refreshTournamentList(tournamentToSelect);
             if (tournamentToSelect != null) {
                 showTournament(tournamentToSelect);

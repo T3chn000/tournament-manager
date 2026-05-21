@@ -40,6 +40,7 @@ public class Round {
         return matches;
     }
 
+    @JsonIgnore
     public List<Match> getUnresolvedMatches() {
         return matches.stream()
                 .filter(m -> !m.isPlayed() || m.getWinner() == null)

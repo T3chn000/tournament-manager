@@ -85,6 +85,11 @@ public class TournamentApplicationService {
     public void deleteTournament(Tournament tournament) {
         requireTournament(tournament);
         tournaments.remove(tournament);
+        try {
+            repository.delete(tournament.getTournamentId());
+        } catch (IOException e) {
+            throw new UiActionException("Failed to delete tournament file: " + e.getMessage());
+        }
     }
 
     public void addPlayer(Tournament tournament, String playerName) {
