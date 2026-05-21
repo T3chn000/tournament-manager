@@ -1,13 +1,22 @@
 package com.tournament.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 import java.util.Objects;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Round {
     private final int roundNumber;
     private final List<Match> matches;
 
-    public Round(int roundNumber, List<Match> matches) {
+    @JsonCreator
+    public Round(
+            @JsonProperty("roundNumber") int roundNumber,
+            @JsonProperty("matches") List<Match> matches) {
         if (roundNumber <= 0) {
             throw new IllegalArgumentException("Round number must be positive");
         }
@@ -33,10 +42,11 @@ public class Round {
 
     public List<Match> getUnresolvedMatches() {
         return matches.stream()
-                .filter(m -> !m.isPlayed() || m.isDraw())
+                .filter(m -> !m.isPlayed() || m.getWinner() == null)
                 .toList();
     }
 
+    @JsonIgnore
     public List<Player> getWinners() {
         if (!isFinished()) {
             throw new IllegalStateException("Round is not finished");

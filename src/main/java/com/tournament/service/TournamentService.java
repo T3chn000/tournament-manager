@@ -5,6 +5,7 @@ import com.tournament.model.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.UUID;
 
 public class TournamentService {
 
@@ -16,6 +17,10 @@ public class TournamentService {
 
     public Tournament createTournament(String name, List<Player> players, TournamentType type) {
         return new Tournament(name, players, type);
+    }
+
+    public Tournament createTournament(UUID tournamentId, String name, List<Player> players, TournamentType type) {
+        return new Tournament(tournamentId, name, players, type);
     }
 
     public void startTournament(Tournament tournament) {
@@ -42,19 +47,29 @@ public class TournamentService {
         return tournament.generateNextRound();
     }
 
-    public void simulateRound(Round round) {
+    public void simulateRound(Tournament tournament, Round round) {
+        if (tournament == null) {
+            throw new IllegalArgumentException("Tournament cannot be null");
+        }
         if (round == null) {
             throw new IllegalArgumentException("Round cannot be null");
         }
+
+        boolean resolveDraws = tournament.getType() == TournamentType.KNOCKOUT;
 
         for (Match match : round.getMatches()) {
             if (match.isPlayed()) {
                 continue;
             }
 
-            int player1Points = random.nextInt(2);
-            int player2Points = 1 - player1Points;
+            int player1Points = random.nextInt(3);
+            int player2Points = random.nextInt(3);
             match.setPoints(player1Points, player2Points);
+
+            if (resolveDraws && match.isDraw()) {
+                Player tieBreakWinner = random.nextBoolean() ? match.getPlayer1() : match.getPlayer2();
+                match.resolveDraw(tieBreakWinner);
+            }
         }
     }
 
@@ -73,18 +88,29 @@ public class TournamentService {
 
         if (!current.isFinished()) return false;
 
-        // knockout: jeden zwycięzca
-        long winners = current.getMatches().stream()
-                .map(Match::getWinner)
-                .filter(Objects::nonNull)
-                .distinct()
-                .count();
+        if (tournament.getType() == TournamentType.KNOCKOUT) {
+            // knockout: one winner
+            long winners = current.getMatches().stream()
+                    .map(Match::getWinner)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .count();
 
-        boolean finished = winners == 1;
-        if (finished) {
-            tournament.finish();
+            boolean finished = winners == 1;
+            if (finished) {
+                tournament.finish();
+            }
+
+            return finished;
+        } else if (tournament.getType() == TournamentType.SWISS) {
+            int maxRounds = (int) Math.ceil(Math.log(tournament.getPlayers().size()) / Math.log(2));
+
+            if (tournament.getRoundCount() >= maxRounds) {
+                tournament.finish();
+                return true;
+            }
         }
 
-        return finished;
+        return false;
     }
 }

@@ -122,6 +122,19 @@ class RoundTest {
     }
 
     @Test
+    void shouldNotTreatResolvedDrawAsUnresolved() {
+        Match match = new Match(p1, p2);
+        match.setPoints(1, 1);
+        match.resolveDraw(p1);
+
+        Round round = new Round(1, List.of(match));
+
+        List<Match> unresolved = round.getUnresolvedMatches();
+
+        assertTrue(unresolved.isEmpty());
+    }
+
+    @Test
     void shouldReturnWinnersWhenFinished() {
         Match match1 = new Match(p1, p2);
         Match match2 = new Match(p3, p4);
@@ -158,6 +171,19 @@ class RoundTest {
         List<Player> winners = round.getWinners();
 
         assertTrue(winners.isEmpty());
+    }
+
+    @Test
+    void shouldIncludeTieBreakWinnerForResolvedDraw() {
+        Match match = new Match(p1, p2);
+        match.setPoints(1, 1);
+        match.resolveDraw(p1);
+
+        Round round = new Round(1, List.of(match));
+
+        List<Player> winners = round.getWinners();
+
+        assertEquals(List.of(p1), winners);
     }
 
     @Test

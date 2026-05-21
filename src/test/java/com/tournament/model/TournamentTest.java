@@ -3,6 +3,7 @@ package com.tournament.model;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,6 +16,7 @@ class TournamentTest {
 
         Tournament tournament = new Tournament(List.of(p1, p2), TournamentType.KNOCKOUT);
 
+        assertNotNull(tournament.getTournamentId());
         assertEquals("Tournament", tournament.getName());
         assertEquals(2, tournament.getPlayers().size());
         assertEquals(TournamentType.KNOCKOUT, tournament.getType());
@@ -35,6 +37,28 @@ class TournamentTest {
         assertTrue(tournament.toString().contains("Spring Cup"));
         assertTrue(tournament.toString().contains("KNOCKOUT"));
         assertTrue(tournament.toString().contains("CREATED"));
+    }
+
+    @Test
+    void shouldCreateTournamentWithProvidedId() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+        UUID id = UUID.randomUUID();
+
+        Tournament tournament = new Tournament(id, "Spring Cup", List.of(p1, p2), TournamentType.KNOCKOUT);
+
+        assertEquals(id, tournament.getTournamentId());
+        assertEquals("Spring Cup", tournament.getName());
+        assertTrue(tournament.toString().contains(id.toString()));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenTournamentIdIsNull() {
+        Player p1 = new Player("A");
+        Player p2 = new Player("B");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> new Tournament(null, "Spring Cup", List.of(p1, p2), TournamentType.KNOCKOUT));
     }
 
     @Test

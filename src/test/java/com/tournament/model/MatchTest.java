@@ -101,6 +101,34 @@ class MatchTest {
     }
 
     @Test
+    void shouldResolveDrawWithTieBreakWinner() {
+        Match match = new Match(p1, p2);
+
+        match.setPoints(1, 1);
+        match.resolveDraw(p1);
+
+        assertTrue(match.isDraw());
+        assertEquals(p1, match.getWinner());
+        assertEquals(p2, match.getLoser());
+    }
+
+    @Test
+    void shouldThrowWhenResolvingMatchThatIsNotDraw() {
+        Match match = new Match(p1, p2);
+        match.setPoints(1, 0);
+
+        assertThrows(IllegalStateException.class, () -> match.resolveDraw(p1));
+    }
+
+    @Test
+    void shouldThrowWhenTieBreakWinnerIsNotInMatch() {
+        Match match = new Match(p1, p2);
+        match.setPoints(1, 1);
+
+        assertThrows(IllegalArgumentException.class, () -> match.resolveDraw(new Player("Other")));
+    }
+
+    @Test
     void shouldThrowWhenPointsNegative() {
         Match match = new Match(p1, p2);
 
