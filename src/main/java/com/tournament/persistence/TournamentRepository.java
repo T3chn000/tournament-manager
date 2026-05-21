@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.tournament.model.Tournament;
 
 import java.io.IOException;
+import java.util.UUID;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,5 +57,10 @@ public class TournamentRepository {
         }
 
         return tournaments;
+    }
+
+    public void delete(UUID tournamentId) throws IOException {
+        Path path = Paths.get(DATA_DIR, "tournament_" + tournamentId + ".json");
+        Files.deleteIfExists(path);
     }
 }
