@@ -232,22 +232,26 @@ class TournamentServiceTest {
     }
 
     @Test
-    void shouldNotFinishSwissTournamentAutomaticallyAfterRound() {
+    void shouldFinishSwissTournamentAfterCorrectNumberOfRounds() {
         TournamentService service = new TournamentService();
 
-        Player p1 = new Player("A");
-        Player p2 = new Player("B");
+        // 8 players -> log2(8) = 3 rounds
+        List<Player> players = List.of(
+                new Player("A"), new Player("B"), new Player("C"), new Player("D"),
+                new Player("E"), new Player("F"), new Player("G"), new Player("H")
+        );
 
-        Tournament tournament = service.createTournament(List.of(p1, p2), TournamentType.SWISS);
-
+        Tournament tournament = service.createTournament(players, TournamentType.SWISS);
         service.startTournament(tournament);
 
-        Round round = service.generateNextRound(tournament);
-        Match match = round.getMatches().getFirst();
-        match.setPoints(1, 0);
+        for (int i = 0; i < 3; i++) {
+            assertFalse(service.isFinished(tournament));
+            Round round = service.generateNextRound(tournament);
+            service.simulateRound(tournament, round);
+        }
 
-        assertFalse(service.isFinished(tournament));
-        assertEquals(TournamentState.STARTED, tournament.getState());
+        assertTrue(service.isFinished(tournament));
+        assertEquals(TournamentState.FINISHED, tournament.getState());
     }
 
     @Test

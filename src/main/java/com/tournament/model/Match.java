@@ -1,5 +1,10 @@
 package com.tournament.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Match {
     private final Player player1;
     private final Player player2;
@@ -7,6 +12,22 @@ public class Match {
     private Integer player2Points;
     private MatchResult result;
     private Player tieBreakWinner;
+
+    @JsonCreator
+    public Match(
+            @JsonProperty("player1") Player player1,
+            @JsonProperty("player2") Player player2,
+            @JsonProperty("player1Points") Integer player1Points,
+            @JsonProperty("player2Points") Integer player2Points,
+            @JsonProperty("result") MatchResult result,
+            @JsonProperty("tieBreakWinner") Player tieBreakWinner) {
+        this.player1 = player1;
+        this.player2 = player2;
+        this.player1Points = player1Points;
+        this.player2Points = player2Points;
+        this.result = result;
+        this.tieBreakWinner = tieBreakWinner;
+    }
 
     public Match(Player player1, Player player2) {
         if (player1 == null || player2 == null) {
@@ -30,6 +51,10 @@ public class Match {
 
     public Player getPlayer1() {return this.player1;}
     public Player getPlayer2() {return this.player2;}
+    public Integer getPlayer1Points() { return player1Points; }
+    public Integer getPlayer2Points() { return player2Points; }
+    public MatchResult getResult() { return result; }
+    public Player getTieBreakWinner() { return tieBreakWinner; }
     public MatchResult getMatchResult() {return this.result;}
     public Player getWinner() {
         if (result == null) {
@@ -106,8 +131,8 @@ public class Match {
     }
     @Override
     public String toString() {
-        String winner = getWinner() == null ? "-" : getWinner().name();
-        return "%s vs %s | score: %s | result: %s | winner: %s"
-                .formatted(player1.name(), player2.name(), getScore(), result == null ? "not played" : result, winner);
+        String winnerName = getWinner() == null ? "-" : getWinner().name();
+        return String.format("%s vs %s | score: %s | result: %s | winner: %s",
+                player1.name(), player2.name(), getScore(), result == null ? "not played" : result, winnerName);
     }
 }

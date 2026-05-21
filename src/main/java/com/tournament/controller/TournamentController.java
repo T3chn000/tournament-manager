@@ -1,6 +1,7 @@
 package com.tournament.controller;
 
 import com.tournament.model.*;
+import com.tournament.persistence.TournamentRepository;
 import com.tournament.service.TournamentService;
 
 import java.util.*;
@@ -9,9 +10,13 @@ public class TournamentController {
 
     private final Scanner scanner = new Scanner(System.in);
     private final TournamentService service = new TournamentService();
+    private final TournamentRepository repository = new TournamentRepository();
     private final List<Tournament> tournaments = new ArrayList<>();
 
     public void start() {
+        System.out.println("Loading saved tournaments...");
+        loadTournaments();
+
         boolean running = true;
 
         while (running) {
@@ -26,12 +31,50 @@ public class TournamentController {
                     case LIST -> listTournaments();
                     case MANAGE -> manageTournament();
                     case DELETE -> deleteTournament();
+                    case SAVE -> saveTournament();
+                    case LOAD -> loadTournaments();
                     case EXIT -> running = false;
                 }
 
             } catch (Exception e) {
                 System.out.println("Something went wrong. Please try again.");
             }
+        }
+    }
+
+    private void saveTournament() {
+        if (tournaments.isEmpty()) {
+            System.out.println("No tournaments to save.");
+            return;
+        }
+
+        listTournaments();
+        System.out.print("Choose tournament to save (index): ");
+        int index = readInt();
+
+        if (!isValidIndex(index)) return;
+
+        Tournament t = tournaments.get(index);
+        saveManagedTournament(t);
+    }
+
+    private void saveManagedTournament(Tournament t) {
+        try {
+            repository.save(t);
+            System.out.println("Tournament saved.");
+        } catch (Exception e) {
+            System.out.println("Error saving: " + e.getMessage());
+        }
+    }
+
+    private void loadTournaments() {
+        try {
+            List<Tournament> loaded = repository.load();
+            tournaments.clear(); // czy konieczne?
+            tournaments.addAll(loaded);
+            System.out.println("Loaded " + tournaments.size() + " tournaments.");
+        } catch (Exception e) {
+            System.out.println("Error loading: " + e.getMessage());
         }
     }
 
@@ -161,6 +204,7 @@ public class TournamentController {
                 case 4 -> simulateTournament(t);
                 case 5 -> showRounds(t);
                 case 6 -> showPlayers(t);
+                case 7 -> saveManagedTournament(t);
                 case 0 -> managing = false;
                 default -> System.out.println("Invalid");
             }
@@ -175,6 +219,7 @@ public class TournamentController {
         System.out.println("4. Simulate tournament");
         System.out.println("5. Show rounds");
         System.out.println("6. Show players");
+        System.out.println("7. Save tournament");
         System.out.println("0. Back");
     }
 
@@ -230,11 +275,6 @@ public class TournamentController {
         if (t.getState() == TournamentState.FINISHED) {
             System.out.println("Tournament already finished.");
             printTournamentDetails(t);
-            return;
-        }
-        if (t.getType() == TournamentType.SWISS) {
-            System.out.println("Full automatic simulation is currently available for knockout tournaments.");
-            System.out.println("For Swiss tournaments, use Next round and review rounds manually.");
             return;
         }
 

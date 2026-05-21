@@ -88,20 +88,29 @@ public class TournamentService {
 
         if (!current.isFinished()) return false;
 
-        if (tournament.getType() != TournamentType.KNOCKOUT) return false;
+        if (tournament.getType() == TournamentType.KNOCKOUT) {
+            // knockout: one winner
+            long winners = current.getMatches().stream()
+                    .map(Match::getWinner)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .count();
 
-        // knockout: one winner
-        long winners = current.getMatches().stream()
-                .map(Match::getWinner)
-                .filter(Objects::nonNull)
-                .distinct()
-                .count();
+            boolean finished = winners == 1;
+            if (finished) {
+                tournament.finish();
+            }
 
-        boolean finished = winners == 1;
-        if (finished) {
-            tournament.finish();
+            return finished;
+        } else if (tournament.getType() == TournamentType.SWISS) {
+            int maxRounds = (int) Math.ceil(Math.log(tournament.getPlayers().size()) / Math.log(2));
+
+            if (tournament.getRoundCount() >= maxRounds) {
+                tournament.finish();
+                return true;
+            }
         }
 
-        return finished;
+        return false;
     }
 }

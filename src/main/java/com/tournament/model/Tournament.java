@@ -1,11 +1,15 @@
 package com.tournament.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tournament.pairing.PairingStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Tournament {
 
     private final UUID tournamentId;
@@ -15,6 +19,30 @@ public class Tournament {
     private final TournamentType type;
 
     private TournamentState state = TournamentState.CREATED;
+
+    @JsonCreator
+    public Tournament(
+            @JsonProperty("tournamentId") UUID tournamentId,
+            @JsonProperty("name") String name,
+            @JsonProperty("players") List<Player> players,
+            @JsonProperty("rounds") List<Round> rounds,
+            @JsonProperty("type") TournamentType type,
+            @JsonProperty("state") TournamentState state) {
+        if (tournamentId == null) {
+            throw new IllegalArgumentException("Tournament ID cannot be null");
+        }
+        if (players == null) {
+            throw new IllegalArgumentException("Players cannot be null");
+        }
+        this.tournamentId = tournamentId;
+        this.name = name;
+        this.players = new ArrayList<>(players);
+        if (rounds != null) {
+            this.rounds.addAll(rounds);
+        }
+        this.type = type;
+        this.state = state;
+    }
 
     public Tournament(List<Player> players, TournamentType type) {
         this("Tournament", players, type);
@@ -135,8 +163,8 @@ public class Tournament {
 
     @Override
     public String toString() {
-        return "%s (%s) [%s, %s, players: %d, rounds: %d]"
-                .formatted(name, tournamentId, type, state, players.size(), rounds.size());
+        return String.format("%s (%s) [%s, %s, players: %d, rounds: %d]", 
+            name, tournamentId, type, state, players.size(), rounds.size());
     }
 
 }
