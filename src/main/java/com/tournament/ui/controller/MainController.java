@@ -44,7 +44,6 @@ public class MainController {
     @FXML private Label titleLabel;
     @FXML private Label metaLabel;
     @FXML private Label statusLabel;
-    @FXML private Button saveButton;
     @FXML private Button deleteButton;
     @FXML private Button addPlayerButton;
     @FXML private Button startButton;
@@ -80,28 +79,6 @@ public class MainController {
             showError("Failed to load saved tournaments: " + e.getMessage());
         }
         refreshTournamentList(null);
-    }
-
-    @FXML
-    private void onLoadTournaments() {
-        try {
-            applicationService.loadSavedTournaments();
-            refreshTournamentList(null);
-            setStatus("Tournaments loaded");
-        } catch (UiActionException e) {
-            showError(e.getMessage());
-        }
-    }
-
-    @FXML
-    private void onSaveTournament() {
-        if (selectedTournament == null) return;
-        try {
-            applicationService.saveTournament(selectedTournament);
-            setStatus("Tournament saved");
-        } catch (UiActionException e) {
-            showError(e.getMessage());
-        }
     }
 
     @FXML
@@ -303,7 +280,6 @@ public class MainController {
         emptyState.setManaged(true);
         detailsPane.setVisible(false);
         detailsPane.setManaged(false);
-        if (saveButton != null) saveButton.setDisable(true);
         deleteButton.setDisable(true);
     }
 
@@ -416,7 +392,6 @@ public class MainController {
         boolean hasCurrentRound = hasSelection && !selectedDetails.rounds().isEmpty();
         boolean currentRoundFinished = hasCurrentRound && selectedDetails.rounds().getLast().finished();
 
-        if (saveButton != null) saveButton.setDisable(!hasSelection);
         deleteButton.setDisable(!hasSelection);
         addPlayerButton.setDisable(!created);
         startButton.setDisable(!created || selectedDetails.playerCount() < 2);
