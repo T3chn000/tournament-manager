@@ -369,13 +369,15 @@ public class MainController {
             dialogStage.showAndWait();
 
             if (controller.isConfirmed()) {
+                Integer tieBreakWinnerIndex = controller.getTieBreakWinnerIndex();
                 handleAction(
                         () -> applicationService.updateMatchScore(
                                 selectedTournament,
                                 roundNumber,
                                 match.matchIndex(),
                                 controller.getPlayer1Points(),
-                                controller.getPlayer2Points()
+                                controller.getPlayer2Points(),
+                                tieBreakWinnerIndex
                         ),
                         "Match result updated"
                 );

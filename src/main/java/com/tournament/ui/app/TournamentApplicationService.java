@@ -154,7 +154,7 @@ public class TournamentApplicationService {
         }
     }
 
-    public void updateMatchScore(Tournament tournament, int roundNumber, int matchIndex, int player1Points, int player2Points) {
+    public void updateMatchScore(Tournament tournament, int roundNumber, int matchIndex, int player1Points, int player2Points, Integer tieBreakWinnerIndex) {
         tournament = requireTournament(tournament);
         Round round = findRound(tournament, roundNumber);
         Match match = findMatch(round, matchIndex);
@@ -162,12 +162,21 @@ public class TournamentApplicationService {
         if (match.isByeMatch()) {
             throw new UiActionException("Cannot set points for BYE match");
         }
-        if (tournament.getType() == TournamentType.KNOCKOUT && player1Points == player2Points) {
-            throw new UiActionException("Knockout match cannot end with a draw");
-        }
 
         try {
             match.setPoints(player1Points, player2Points);
+            if (tournament.getType() == TournamentType.KNOCKOUT && match.isDraw()) {
+                if (tieBreakWinnerIndex == null) {
+                    throw new UiActionException("Tie-break winner must be specified for draw in knockout tournament");
+                }
+                if (tieBreakWinnerIndex == 1) {
+                    match.resolveDraw(match.getPlayer1());
+                } else if (tieBreakWinnerIndex == 2) {
+                    match.resolveDraw(match.getPlayer2());
+                } else {
+                    throw new UiActionException("Invalid tie-break winner index: " + tieBreakWinnerIndex);
+                }
+            }
             tournamentService.isFinished(tournament);
         } catch (IllegalArgumentException | IllegalStateException e) {
             throw new UiActionException(e.getMessage());
@@ -249,11 +258,15 @@ public class TournamentApplicationService {
             String result = match.getMatchResult() == null ? "not played" : match.getMatchResult().name();
             String winner = match.getWinner() == null ? "-" : match.getWinner().name();
             boolean editable = tournament.getState() == TournamentState.STARTED && !match.isByeMatch();
+            String score = match.getScore();
+            if (match.isDraw() && match.getTieBreakWinner() != null) {
+                score += " (dogr.)";
+            }
             matchViews.add(new MatchView(
                     i,
                     match.getPlayer1().name(),
                     match.getPlayer2().name(),
-                    match.getScore(),
+                    score,
                     result,
                     winner,
                     match.isPlayed(),
