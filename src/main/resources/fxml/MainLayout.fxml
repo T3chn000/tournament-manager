@@ -23,9 +23,7 @@
             <items>
                 <Label styleClass="app-title" text="Tournament Manager" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Button onAction="#onLoadTournaments" text="Load" />
                 <Button onAction="#onNewTournament" text="New tournament" />
-                <Button fx:id="saveButton" onAction="#onSaveTournament" text="Save" />
                 <Button fx:id="deleteButton" onAction="#onDeleteTournament" text="Delete" />
             </items>
         </ToolBar>
