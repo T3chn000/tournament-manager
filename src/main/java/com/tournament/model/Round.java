@@ -71,6 +71,7 @@ public class Round {
         return matches.stream().anyMatch(m -> m.hasPlayer(player));
     }
 
+    @JsonIgnore
     public boolean isFinished() {
         return matches.stream().allMatch(Match::isPlayed);
     }

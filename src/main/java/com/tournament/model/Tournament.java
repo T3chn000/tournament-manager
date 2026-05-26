@@ -1,6 +1,7 @@
 package com.tournament.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tournament.pairing.PairingStrategy;
@@ -28,12 +29,8 @@ public class Tournament {
             @JsonProperty("rounds") List<Round> rounds,
             @JsonProperty("type") TournamentType type,
             @JsonProperty("state") TournamentState state) {
-        if (tournamentId == null) {
-            throw new IllegalArgumentException("Tournament ID cannot be null");
-        }
-        if (players == null) {
-            throw new IllegalArgumentException("Players cannot be null");
-        }
+        validateTournament(tournamentId, name, players, type);
+
         this.tournamentId = tournamentId;
         this.name = name;
         this.players = new ArrayList<>(players);
@@ -41,7 +38,7 @@ public class Tournament {
             this.rounds.addAll(rounds);
         }
         this.type = type;
-        this.state = state;
+        this.state = state == null ? TournamentState.CREATED : state;
     }
 
     public Tournament(List<Player> players, TournamentType type) {
@@ -53,18 +50,7 @@ public class Tournament {
     }
 
     public Tournament(UUID tournamentId, String name, List<Player> players, TournamentType type) {
-        if (tournamentId == null) {
-            throw new IllegalArgumentException("Tournament ID cannot be null");
-        }
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Tournament name cannot be empty");
-        }
-        if (players == null || players.isEmpty()) {
-            throw new IllegalArgumentException("Players cannot be null or empty");
-        }
-        if (type == null) {
-            throw new IllegalArgumentException("Tournament type cannot be null");
-        }
+        validateTournament(tournamentId, name, players, type);
 
         this.tournamentId = tournamentId;
         this.name = name;
@@ -102,6 +88,7 @@ public class Tournament {
         return List.copyOf(rounds);
     }
 
+    @JsonIgnore
     public int getRoundCount() {
         return rounds.size();
     }
@@ -110,6 +97,7 @@ public class Tournament {
         return type;
     }
 
+    @JsonIgnore
     public Round getCurrentRound() {
         if (rounds.isEmpty()) {
             return null;
@@ -125,6 +113,7 @@ public class Tournament {
         rounds.add(round);
     }
 
+    @JsonIgnore
     public boolean isStarted() {
         return state != TournamentState.CREATED;
     }
@@ -167,4 +156,18 @@ public class Tournament {
             name, tournamentId, type, state, players.size(), rounds.size());
     }
 
+    private static void validateTournament(UUID tournamentId, String name, List<Player> players, TournamentType type) {
+        if (tournamentId == null) {
+            throw new IllegalArgumentException("Tournament ID cannot be null");
+        }
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Tournament name cannot be empty");
+        }
+        if (players == null || players.isEmpty()) {
+            throw new IllegalArgumentException("Players cannot be null or empty");
+        }
+        if (type == null) {
+            throw new IllegalArgumentException("Tournament type cannot be null");
+        }
+    }
 }

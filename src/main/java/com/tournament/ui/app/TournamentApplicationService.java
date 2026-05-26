@@ -255,7 +255,7 @@ public class TournamentApplicationService {
         List<MatchView> matchViews = new ArrayList<>();
         for (int i = 0; i < matches.size(); i++) {
             Match match = matches.get(i);
-            String result = match.getMatchResult() == null ? "not played" : match.getMatchResult().name();
+            String result = match.getResult() == null ? "not played" : match.getResult().name();
             String winner = match.getWinner() == null ? "-" : match.getWinner().name();
             boolean editable = tournament.getState() == TournamentState.STARTED && !match.isByeMatch();
             String score = match.getScore();

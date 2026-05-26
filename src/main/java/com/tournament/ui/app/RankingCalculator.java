@@ -78,7 +78,7 @@ public class RankingCalculator {
 
         Stats player1Stats = statsByPlayer.get(player1);
         Stats player2Stats = statsByPlayer.get(player2);
-        MatchResult result = match.getMatchResult();
+        MatchResult result = match.getResult();
 
         if (result == MatchResult.DRAW) {
             player1Stats.addDraw();
