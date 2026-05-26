@@ -20,7 +20,7 @@ class MatchTest {
 
         assertEquals(p1, match.getPlayer1());
         assertEquals(p2, match.getPlayer2());
-        assertNull(match.getMatchResult());
+        assertNull(match.getResult());
         assertFalse(match.isPlayed());
     }
 
@@ -44,7 +44,7 @@ class MatchTest {
         Match match = new Match(p1, Player.BYE);
 
         assertTrue(match.isByeMatch());
-        assertEquals(MatchResult.PLAYER1_WIN, match.getMatchResult());
+        assertEquals(MatchResult.PLAYER1_WIN, match.getResult());
         assertEquals(p1, match.getWinner());
     }
 
@@ -53,7 +53,7 @@ class MatchTest {
         Match match = new Match(Player.BYE, p2);
 
         assertTrue(match.isByeMatch());
-        assertEquals(MatchResult.PLAYER2_WIN, match.getMatchResult());
+        assertEquals(MatchResult.PLAYER2_WIN, match.getResult());
         assertEquals(p2, match.getWinner());
     }
 
@@ -72,7 +72,7 @@ class MatchTest {
         match.setPoints(3, 1);
 
         assertEquals("3 : 1", match.getScore());
-        assertEquals(MatchResult.PLAYER1_WIN, match.getMatchResult());
+        assertEquals(MatchResult.PLAYER1_WIN, match.getResult());
         assertEquals(p1, match.getWinner());
         assertEquals(p2, match.getLoser());
         assertTrue(match.isPlayed());
@@ -84,7 +84,7 @@ class MatchTest {
 
         match.setPoints(1, 3);
 
-        assertEquals(MatchResult.PLAYER2_WIN, match.getMatchResult());
+        assertEquals(MatchResult.PLAYER2_WIN, match.getResult());
         assertEquals(p2, match.getWinner());
         assertEquals(p1, match.getLoser());
     }
@@ -151,7 +151,7 @@ class MatchTest {
         Match match = new Match(p1, p2, 5, 3);
 
         assertEquals("5 : 3", match.getScore());
-        assertEquals(MatchResult.PLAYER1_WIN, match.getMatchResult());
+        assertEquals(MatchResult.PLAYER1_WIN, match.getResult());
         assertTrue(match.isPlayed());
     }
 
