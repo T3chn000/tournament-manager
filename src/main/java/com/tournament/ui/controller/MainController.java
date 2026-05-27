@@ -399,7 +399,7 @@ public class MainController {
         startButton.setDisable(!created || selectedDetails.playerCount() < 2);
         nextRoundButton.setDisable(!started || (hasCurrentRound && !currentRoundFinished));
         simulateRoundButton.setDisable(!started || !hasCurrentRound || currentRoundFinished);
-        simulateTournamentButton.setDisable(!started || selectedDetails.type() != TournamentType.KNOCKOUT);
+        simulateTournamentButton.setDisable(!started);
     }
 
     private void runSelectedAction(Runnable action, String successMessage) {

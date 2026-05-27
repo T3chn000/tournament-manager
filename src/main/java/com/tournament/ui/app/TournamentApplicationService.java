@@ -137,17 +137,19 @@ public class TournamentApplicationService {
 
     public void simulateTournament(Tournament tournament) {
         tournament = requireTournament(tournament);
-        if (tournament.getType() != TournamentType.KNOCKOUT) {
-            throw new UiActionException("Full automatic simulation is currently available for knockout tournaments");
-        }
         if (tournament.getState() == TournamentState.CREATED) {
             throw new UiActionException("Start tournament first");
         }
 
         try {
             while (!tournamentService.isFinished(tournament)) {
-                Round round = tournamentService.generateNextRound(tournament);
-                tournamentService.simulateRound(tournament, round);
+                Round currentRound = tournament.getCurrentRound();
+                if (currentRound != null && !currentRound.isFinished()) {
+                    tournamentService.simulateRound(tournament, currentRound);
+                } else {
+                    Round round = tournamentService.generateNextRound(tournament);
+                    tournamentService.simulateRound(tournament, round);
+                }
             }
         } catch (IllegalArgumentException | IllegalStateException e) {
             throw new UiActionException(e.getMessage());
@@ -260,7 +262,7 @@ public class TournamentApplicationService {
             boolean editable = tournament.getState() == TournamentState.STARTED && !match.isByeMatch();
             String score = match.getScore();
             if (match.isDraw() && match.getTieBreakWinner() != null) {
-                score += " (dogr.)";
+                score += " (OT)";
             }
             Integer tieBreakWinnerIndex = getTieBreakWinnerIndex(match);
             matchViews.add(new MatchView(
