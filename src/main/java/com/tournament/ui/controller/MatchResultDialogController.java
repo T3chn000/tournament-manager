@@ -46,10 +46,10 @@ public class MatchResultDialogController {
         tieBreakWinnerComboBox.getItems().clear();
         tieBreakWinnerComboBox.getItems().addAll(match.player1Name(), match.player2Name());
 
-        applyExistingScore(match.score());
+        applyExistingPoints(match);
 
-        if (match.played() && match.draw()) {
-            tieBreakWinnerComboBox.setValue(match.winnerName());
+        if (match.tieBreakWinnerIndex() != null) {
+            tieBreakWinnerComboBox.getSelectionModel().select(match.tieBreakWinnerIndex() - 1);
         }
 
         updateTieBreakVisibility();
@@ -108,24 +108,8 @@ public class MatchResultDialogController {
         dialogStage.close();
     }
 
-    private void applyExistingScore(String score) {
-        if (score == null || !score.contains(":")) {
-            return;
-        }
-
-        String[] parts = score.split(":");
-        if (parts.length != 2) {
-            return;
-        }
-
-        try {
-            int p1 = Integer.parseInt(parts[0].trim());
-            int p2 = Integer.parseInt(parts[1].trim().split(" ")[0]);
-            player1PointsSpinner.getValueFactory().setValue(p1);
-            player2PointsSpinner.getValueFactory().setValue(p2);
-        } catch (NumberFormatException ignored) {
-            player1PointsSpinner.getValueFactory().setValue(0);
-            player2PointsSpinner.getValueFactory().setValue(0);
-        }
+    private void applyExistingPoints(MatchView match) {
+        player1PointsSpinner.getValueFactory().setValue(match.player1Points() == null ? 0 : match.player1Points());
+        player2PointsSpinner.getValueFactory().setValue(match.player2Points() == null ? 0 : match.player2Points());
     }
 }

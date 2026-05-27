@@ -262,13 +262,17 @@ public class TournamentApplicationService {
             if (match.isDraw() && match.getTieBreakWinner() != null) {
                 score += " (dogr.)";
             }
+            Integer tieBreakWinnerIndex = getTieBreakWinnerIndex(match);
             matchViews.add(new MatchView(
                     i,
                     match.getPlayer1().name(),
                     match.getPlayer2().name(),
                     score,
+                    match.getPlayer1Points(),
+                    match.getPlayer2Points(),
                     result,
                     winner,
+                    tieBreakWinnerIndex,
                     match.isPlayed(),
                     match.isDraw(),
                     match.isByeMatch(),
@@ -276,6 +280,20 @@ public class TournamentApplicationService {
             ));
         }
         return new RoundView(round.getRoundNumber(), round.isFinished(), round.hasDraws(), List.copyOf(matchViews));
+    }
+
+    private Integer getTieBreakWinnerIndex(Match match) {
+        Player tieBreakWinner = match.getTieBreakWinner();
+        if (tieBreakWinner == null) {
+            return null;
+        }
+        if (tieBreakWinner.equals(match.getPlayer1())) {
+            return 1;
+        }
+        if (tieBreakWinner.equals(match.getPlayer2())) {
+            return 2;
+        }
+        return null;
     }
 
     private Tournament requireTournament(Tournament tournament) {
