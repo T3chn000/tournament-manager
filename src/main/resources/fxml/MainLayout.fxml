@@ -19,23 +19,23 @@
 
 <BorderPane prefHeight="700.0" prefWidth="1100.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tournament.ui.controller.MainController">
     <top>
-        <ToolBar>
+        <ToolBar styleClass="main-toolbar">
             <items>
                 <Label styleClass="app-title" text="Tournament Manager" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Button onAction="#onNewTournament" text="New tournament" />
-                <Button fx:id="deleteButton" onAction="#onDeleteTournament" text="Delete" />
+                <Button onAction="#onNewTournament" styleClass="primary-button" text="New tournament" />
+                <Button fx:id="deleteButton" onAction="#onDeleteTournament" styleClass="danger-button" text="Delete" />
             </items>
         </ToolBar>
     </top>
 
     <center>
-        <SplitPane dividerPositions="0.27">
+        <SplitPane dividerPositions="0.27" styleClass="main-split">
             <items>
                 <VBox spacing="8.0" styleClass="side-panel">
                     <children>
                         <Label styleClass="section-title" text="Tournaments" />
-                        <ListView fx:id="tournamentListView" VBox.vgrow="ALWAYS" />
+                        <ListView fx:id="tournamentListView" styleClass="tournament-list" VBox.vgrow="ALWAYS" />
                     </children>
                     <padding>
                         <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
@@ -44,7 +44,7 @@
 
                 <StackPane styleClass="details-shell">
                     <children>
-                        <VBox fx:id="emptyState" alignment="CENTER" spacing="8.0">
+                        <VBox fx:id="emptyState" alignment="CENTER" spacing="8.0" styleClass="empty-state">
                             <children>
                                 <Label styleClass="empty-title" text="No tournament selected" />
                                 <Label styleClass="muted-text" text="Create a tournament or choose one from the list." />
@@ -70,7 +70,7 @@
                                     </items>
                                 </ToolBar>
 
-                                <TabPane VBox.vgrow="ALWAYS">
+                                <TabPane styleClass="details-tabs" VBox.vgrow="ALWAYS">
                                     <tabs>
                                         <Tab closable="false" text="Players">
                                             <content>
@@ -86,7 +86,7 @@
 
                                         <Tab closable="false" text="Rounds">
                                             <content>
-                                                <ScrollPane fitToWidth="true">
+                                                <ScrollPane fitToWidth="true" styleClass="rounds-scroll">
                                                     <content>
                                                         <VBox fx:id="roundsContainer" spacing="10.0">
                                                             <padding>

@@ -16,6 +16,7 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -93,7 +94,7 @@ public class MainController {
             dialogStage.setTitle("New tournament");
             dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.initOwner(tournamentListView.getScene().getWindow());
-            dialogStage.setScene(new javafx.scene.Scene(root));
+            dialogStage.setScene(createStyledScene(root));
             dialogStage.setMinWidth(420);
             dialogStage.setMinHeight(420);
             dialogStage.showAndWait();
@@ -365,7 +366,7 @@ public class MainController {
             dialogStage.setTitle("Match result");
             dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.initOwner(tournamentListView.getScene().getWindow());
-            dialogStage.setScene(new javafx.scene.Scene(root));
+            dialogStage.setScene(createStyledScene(root));
             dialogStage.showAndWait();
 
             if (controller.isConfirmed()) {
@@ -400,6 +401,12 @@ public class MainController {
         nextRoundButton.setDisable(!started || (hasCurrentRound && !currentRoundFinished));
         simulateRoundButton.setDisable(!started || !hasCurrentRound || currentRoundFinished);
         simulateTournamentButton.setDisable(!started);
+    }
+
+    private Scene createStyledScene(Parent root) {
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(getClass().getResource("/css/app.css").toExternalForm());
+        return scene;
     }
 
     private void runSelectedAction(Runnable action, String successMessage) {
