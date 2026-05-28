@@ -369,13 +369,15 @@ public class MainController {
             dialogStage.showAndWait();
 
             if (controller.isConfirmed()) {
+                Integer tieBreakWinnerIndex = controller.getTieBreakWinnerIndex();
                 handleAction(
                         () -> applicationService.updateMatchScore(
                                 selectedTournament,
                                 roundNumber,
                                 match.matchIndex(),
                                 controller.getPlayer1Points(),
-                                controller.getPlayer2Points()
+                                controller.getPlayer2Points(),
+                                tieBreakWinnerIndex
                         ),
                         "Match result updated"
                 );
@@ -397,7 +399,7 @@ public class MainController {
         startButton.setDisable(!created || selectedDetails.playerCount() < 2);
         nextRoundButton.setDisable(!started || (hasCurrentRound && !currentRoundFinished));
         simulateRoundButton.setDisable(!started || !hasCurrentRound || currentRoundFinished);
-        simulateTournamentButton.setDisable(!started || selectedDetails.type() != TournamentType.KNOCKOUT);
+        simulateTournamentButton.setDisable(!started);
     }
 
     private void runSelectedAction(Runnable action, String successMessage) {

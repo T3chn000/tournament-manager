@@ -137,24 +137,26 @@ public class TournamentApplicationService {
 
     public void simulateTournament(Tournament tournament) {
         tournament = requireTournament(tournament);
-        if (tournament.getType() != TournamentType.KNOCKOUT) {
-            throw new UiActionException("Full automatic simulation is currently available for knockout tournaments");
-        }
         if (tournament.getState() == TournamentState.CREATED) {
             throw new UiActionException("Start tournament first");
         }
 
         try {
             while (!tournamentService.isFinished(tournament)) {
-                Round round = tournamentService.generateNextRound(tournament);
-                tournamentService.simulateRound(tournament, round);
+                Round currentRound = tournament.getCurrentRound();
+                if (currentRound != null && !currentRound.isFinished()) {
+                    tournamentService.simulateRound(tournament, currentRound);
+                } else {
+                    Round round = tournamentService.generateNextRound(tournament);
+                    tournamentService.simulateRound(tournament, round);
+                }
             }
         } catch (IllegalArgumentException | IllegalStateException e) {
             throw new UiActionException(e.getMessage());
         }
     }
 
-    public void updateMatchScore(Tournament tournament, int roundNumber, int matchIndex, int player1Points, int player2Points) {
+    public void updateMatchScore(Tournament tournament, int roundNumber, int matchIndex, int player1Points, int player2Points, Integer tieBreakWinnerIndex) {
         tournament = requireTournament(tournament);
         Round round = findRound(tournament, roundNumber);
         Match match = findMatch(round, matchIndex);
@@ -162,12 +164,21 @@ public class TournamentApplicationService {
         if (match.isByeMatch()) {
             throw new UiActionException("Cannot set points for BYE match");
         }
-        if (tournament.getType() == TournamentType.KNOCKOUT && player1Points == player2Points) {
-            throw new UiActionException("Knockout match cannot end with a draw");
-        }
 
         try {
             match.setPoints(player1Points, player2Points);
+            if (tournament.getType() == TournamentType.KNOCKOUT && match.isDraw()) {
+                if (tieBreakWinnerIndex == null) {
+                    throw new UiActionException("Tie-break winner must be specified for draw in knockout tournament");
+                }
+                if (tieBreakWinnerIndex == 1) {
+                    match.resolveDraw(match.getPlayer1());
+                } else if (tieBreakWinnerIndex == 2) {
+                    match.resolveDraw(match.getPlayer2());
+                } else {
+                    throw new UiActionException("Invalid tie-break winner index: " + tieBreakWinnerIndex);
+                }
+            }
             tournamentService.isFinished(tournament);
         } catch (IllegalArgumentException | IllegalStateException e) {
             throw new UiActionException(e.getMessage());
@@ -246,16 +257,24 @@ public class TournamentApplicationService {
         List<MatchView> matchViews = new ArrayList<>();
         for (int i = 0; i < matches.size(); i++) {
             Match match = matches.get(i);
-            String result = match.getMatchResult() == null ? "not played" : match.getMatchResult().name();
+            String result = match.getResult() == null ? "not played" : match.getResult().name();
             String winner = match.getWinner() == null ? "-" : match.getWinner().name();
             boolean editable = tournament.getState() == TournamentState.STARTED && !match.isByeMatch();
+            String score = match.getScore();
+            if (match.isDraw() && match.getTieBreakWinner() != null) {
+                score += " (OT)";
+            }
+            Integer tieBreakWinnerIndex = getTieBreakWinnerIndex(match);
             matchViews.add(new MatchView(
                     i,
                     match.getPlayer1().name(),
                     match.getPlayer2().name(),
-                    match.getScore(),
+                    score,
+                    match.getPlayer1Points(),
+                    match.getPlayer2Points(),
                     result,
                     winner,
+                    tieBreakWinnerIndex,
                     match.isPlayed(),
                     match.isDraw(),
                     match.isByeMatch(),
@@ -263,6 +282,20 @@ public class TournamentApplicationService {
             ));
         }
         return new RoundView(round.getRoundNumber(), round.isFinished(), round.hasDraws(), List.copyOf(matchViews));
+    }
+
+    private Integer getTieBreakWinnerIndex(Match match) {
+        Player tieBreakWinner = match.getTieBreakWinner();
+        if (tieBreakWinner == null) {
+            return null;
+        }
+        if (tieBreakWinner.equals(match.getPlayer1())) {
+            return 1;
+        }
+        if (tieBreakWinner.equals(match.getPlayer2())) {
+            return 2;
+        }
+        return null;
     }
 
     private Tournament requireTournament(Tournament tournament) {
