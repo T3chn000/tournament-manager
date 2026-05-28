@@ -21,6 +21,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -152,6 +153,8 @@ public class MainController {
         dialog.setTitle("Add player");
         dialog.setHeaderText("Add player to " + selectedDetails.name());
         dialog.setContentText("Player name:");
+        dialog.getEditor().setPromptText("Player name");
+        styleAddPlayerDialog(dialog);
         dialog.showAndWait()
                 .map(String::trim)
                 .filter(name -> !name.isBlank())
@@ -407,6 +410,21 @@ public class MainController {
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getClass().getResource("/css/app.css").toExternalForm());
         return scene;
+    }
+
+    private void styleAddPlayerDialog(TextInputDialog dialog) {
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/css/app.css").toExternalForm());
+        dialogPane.getStyleClass().addAll("app-dialog-pane", "add-player-dialog");
+        dialogPane.setPrefWidth(380);
+        dialogPane.setMinWidth(360);
+
+        Button addButton = (Button) dialogPane.lookupButton(ButtonType.OK);
+        addButton.setText("Add");
+        addButton.getStyleClass().add("primary-button");
+
+        Button cancelButton = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
+        cancelButton.setText("Cancel");
     }
 
     private void runSelectedAction(Runnable action, String successMessage) {
