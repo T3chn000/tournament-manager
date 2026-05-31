@@ -40,8 +40,8 @@
                 <HBox spacing="8.0">
                     <children>
                         <TextField fx:id="playerNameField" onAction="#onAddPlayer" promptText="Player name" HBox.hgrow="ALWAYS" />
-                        <Button onAction="#onAddPlayer" text="Add" />
-                        <Button onAction="#onRemovePlayer" text="Remove" />
+                        <Button onAction="#onAddPlayer" styleClass="secondary-button" text="Add" />
+                        <Button onAction="#onRemovePlayer" styleClass="danger-button" text="Remove" />
                     </children>
                 </HBox>
                 <ListView fx:id="playersListView" prefHeight="180.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
