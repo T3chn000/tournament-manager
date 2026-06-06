@@ -107,6 +107,32 @@
     -fx-border-color: #1f5f5c;
 }
 
+.delete-tournament-dialog {
+    -fx-pref-width: 420;
+    -fx-min-width: 400;
+    -fx-effect: dropshadow(gaussian, #d3dad6, 10, 0.16, 0, 2);
+}
+
+.delete-tournament-dialog > .content {
+    -fx-padding: 6 18 8 18;
+}
+
+.delete-tournament-dialog .content.label {
+    -fx-text-fill: #5c6767;
+    -fx-font-weight: 600;
+}
+
+.delete-tournament-dialog .danger-button {
+    -fx-background-color: #fff8f6;
+    -fx-border-color: #d08376;
+    -fx-text-fill: #9f342c;
+}
+
+.delete-tournament-dialog .danger-button:hover {
+    -fx-background-color: #fcebe7;
+    -fx-border-color: #c05d4f;
+}
+
 .section-title {
     -fx-font-size: 12px;
     -fx-font-weight: 700;
