@@ -4,7 +4,6 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -12,7 +11,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="420.0" prefWidth="420.0" spacing="12.0" styleClass="dialog-root" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tournament.ui.controller.CreateTournamentDialogController">
+<VBox prefHeight="210.0" prefWidth="420.0" spacing="12.0" styleClass="dialog-root" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tournament.ui.controller.CreateTournamentDialogController">
     <children>
         <Label styleClass="dialog-title" text="New tournament" />
 
@@ -33,20 +32,6 @@
             <RowConstraints />
          </rowConstraints>
         </GridPane>
-
-        <VBox spacing="8.0" VBox.vgrow="ALWAYS">
-            <children>
-                <Label styleClass="section-title" text="Players" />
-                <HBox spacing="8.0">
-                    <children>
-                        <TextField fx:id="playerNameField" onAction="#onAddPlayer" promptText="Player name" HBox.hgrow="ALWAYS" />
-                        <Button onAction="#onAddPlayer" styleClass="secondary-button" text="Add" />
-                        <Button onAction="#onRemovePlayer" styleClass="danger-button" text="Remove" />
-                    </children>
-                </HBox>
-                <ListView fx:id="playersListView" prefHeight="180.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
-            </children>
-        </VBox>
 
         <Label fx:id="errorLabel" styleClass="error-text" />
 

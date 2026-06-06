@@ -380,6 +380,10 @@
     -fx-background-color: transparent;
 }
 
+.workspace-tabs {
+    -fx-background-color: #eef2ef;
+}
+
 .tab-pane > .tab-header-area {
     -fx-padding: 0 0 0 0;
 }
