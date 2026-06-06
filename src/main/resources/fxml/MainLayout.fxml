@@ -30,101 +30,136 @@
     </top>
 
     <center>
-        <SplitPane dividerPositions="0.27" styleClass="main-split">
-            <items>
-                <VBox spacing="8.0" styleClass="side-panel">
-                    <children>
-                        <Label styleClass="section-title" text="Tournaments" />
-                        <ListView fx:id="tournamentListView" styleClass="tournament-list" VBox.vgrow="ALWAYS" />
-                    </children>
-                    <padding>
-                        <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
-                    </padding>
-                </VBox>
-
-                <StackPane styleClass="details-shell">
-                    <children>
-                        <VBox fx:id="emptyState" alignment="CENTER" spacing="8.0" styleClass="empty-state">
-                            <children>
-                                <Label styleClass="empty-title" text="No tournament selected" />
-                                <Label styleClass="muted-text" text="Create a tournament or choose one from the list." />
-                            </children>
-                        </VBox>
-
-                        <VBox fx:id="detailsPane" managed="false" spacing="12.0" visible="false">
-                            <children>
-                                <VBox spacing="4.0">
+        <TabPane styleClass="workspace-tabs">
+            <tabs>
+                <Tab closable="false" text="Tournaments">
+                    <content>
+                        <SplitPane dividerPositions="0.27" styleClass="main-split">
+                            <items>
+                                <VBox spacing="8.0" styleClass="side-panel">
                                     <children>
-                                        <Label fx:id="titleLabel" styleClass="details-title" />
-                                        <Label fx:id="metaLabel" styleClass="muted-text" />
+                                        <Label styleClass="section-title" text="Tournaments" />
+                                        <ListView fx:id="tournamentListView" styleClass="tournament-list" VBox.vgrow="ALWAYS" />
                                     </children>
+                                    <padding>
+                                        <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                                    </padding>
                                 </VBox>
 
+                                <StackPane styleClass="details-shell">
+                                    <children>
+                                        <VBox fx:id="emptyState" alignment="CENTER" spacing="8.0" styleClass="empty-state">
+                                            <children>
+                                                <Label styleClass="empty-title" text="No tournament selected" />
+                                                <Label styleClass="muted-text" text="Create a tournament or choose one from the list." />
+                                            </children>
+                                        </VBox>
+
+                                        <VBox fx:id="detailsPane" managed="false" spacing="12.0" visible="false">
+                                            <children>
+                                                <VBox spacing="4.0">
+                                                    <children>
+                                                        <Label fx:id="titleLabel" styleClass="details-title" />
+                                                        <Label fx:id="metaLabel" styleClass="muted-text" />
+                                                    </children>
+                                                </VBox>
+
+                                                <ToolBar styleClass="action-toolbar">
+                                                    <items>
+                                                        <Button fx:id="addPlayerButton" onAction="#onAddPlayer" text="Add player" />
+                                                        <Button fx:id="startButton" onAction="#onStartTournament" text="Start" />
+                                                        <Button fx:id="nextRoundButton" onAction="#onNextRound" text="Next round" />
+                                                        <Button fx:id="simulateRoundButton" onAction="#onSimulateRound" text="Simulate round" />
+                                                        <Button fx:id="simulateTournamentButton" onAction="#onSimulateTournament" text="Simulate tournament" />
+                                                    </items>
+                                                </ToolBar>
+
+                                                <TabPane styleClass="details-tabs" VBox.vgrow="ALWAYS">
+                                                    <tabs>
+                                                        <Tab closable="false" text="Players">
+                                                            <content>
+                                                                <TableView fx:id="playersTable">
+                                                                    <columns>
+                                                                        <TableColumn fx:id="playerNumberColumn" prefWidth="60.0" text="#" />
+                                                                        <TableColumn fx:id="playerNameColumn" prefWidth="360.0" text="Name" />
+                                                                        <TableColumn fx:id="playerIdColumn" prefWidth="160.0" text="ID" />
+                                                                    </columns>
+                                                                </TableView>
+                                                            </content>
+                                                        </Tab>
+
+                                                        <Tab closable="false" text="Rounds">
+                                                            <content>
+                                                                <ScrollPane fitToWidth="true" styleClass="rounds-scroll">
+                                                                    <content>
+                                                                        <VBox fx:id="roundsContainer" spacing="10.0">
+                                                                            <padding>
+                                                                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                                                                            </padding>
+                                                                        </VBox>
+                                                                    </content>
+                                                                </ScrollPane>
+                                                            </content>
+                                                        </Tab>
+
+                                                        <Tab closable="false" text="Ranking">
+                                                            <content>
+                                                                <TableView fx:id="rankingTable">
+                                                                    <columns>
+                                                                        <TableColumn fx:id="placeColumn" prefWidth="60.0" text="#" />
+                                                                        <TableColumn fx:id="rankingPlayerColumn" prefWidth="260.0" text="Player" />
+                                                                        <TableColumn fx:id="pointsColumn" prefWidth="70.0" text="Pts" />
+                                                                        <TableColumn fx:id="winsColumn" prefWidth="60.0" text="W" />
+                                                                        <TableColumn fx:id="drawsColumn" prefWidth="60.0" text="D" />
+                                                                        <TableColumn fx:id="lossesColumn" prefWidth="60.0" text="L" />
+                                                                        <TableColumn fx:id="playedColumn" prefWidth="80.0" text="Played" />
+                                                                        <TableColumn fx:id="byeColumn" prefWidth="70.0" text="BYE" />
+                                                                    </columns>
+                                                                </TableView>
+                                                            </content>
+                                                        </Tab>
+                                                    </tabs>
+                                                </TabPane>
+                                            </children>
+                                            <padding>
+                                                <Insets bottom="14.0" left="14.0" right="14.0" top="14.0" />
+                                            </padding>
+                                        </VBox>
+                                    </children>
+                                </StackPane>
+                            </items>
+                        </SplitPane>
+                    </content>
+                </Tab>
+
+                <Tab closable="false" text="Players">
+                    <content>
+                        <VBox spacing="10.0" styleClass="main-split">
+                            <children>
                                 <ToolBar styleClass="action-toolbar">
                                     <items>
-                                        <Button fx:id="addPlayerButton" onAction="#onAddPlayer" text="Add player" />
-                                        <Button fx:id="startButton" onAction="#onStartTournament" text="Start" />
-                                        <Button fx:id="nextRoundButton" onAction="#onNextRound" text="Next round" />
-                                        <Button fx:id="simulateRoundButton" onAction="#onSimulateRound" text="Simulate round" />
-                                        <Button fx:id="simulateTournamentButton" onAction="#onSimulateTournament" text="Simulate tournament" />
+                                        <Label styleClass="section-title" text="Player base" />
+                                        <Region HBox.hgrow="ALWAYS" />
+                                        <Button onAction="#onAddGlobalPlayer" styleClass="primary-button" text="Add player" />
+                                        <Button onAction="#onRenameGlobalPlayer" text="Rename" />
                                     </items>
                                 </ToolBar>
-
-                                <TabPane styleClass="details-tabs" VBox.vgrow="ALWAYS">
-                                    <tabs>
-                                        <Tab closable="false" text="Players">
-                                            <content>
-                                                <TableView fx:id="playersTable">
-                                                    <columns>
-                                                        <TableColumn fx:id="playerNumberColumn" prefWidth="60.0" text="#" />
-                                                        <TableColumn fx:id="playerNameColumn" prefWidth="360.0" text="Name" />
-                                                        <TableColumn fx:id="playerIdColumn" prefWidth="160.0" text="ID" />
-                                                    </columns>
-                                                </TableView>
-                                            </content>
-                                        </Tab>
-
-                                        <Tab closable="false" text="Rounds">
-                                            <content>
-                                                <ScrollPane fitToWidth="true" styleClass="rounds-scroll">
-                                                    <content>
-                                                        <VBox fx:id="roundsContainer" spacing="10.0">
-                                                            <padding>
-                                                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
-                                                            </padding>
-                                                        </VBox>
-                                                    </content>
-                                                </ScrollPane>
-                                            </content>
-                                        </Tab>
-
-                                        <Tab closable="false" text="Ranking">
-                                            <content>
-                                                <TableView fx:id="rankingTable">
-                                                    <columns>
-                                                        <TableColumn fx:id="placeColumn" prefWidth="60.0" text="#" />
-                                                        <TableColumn fx:id="rankingPlayerColumn" prefWidth="260.0" text="Player" />
-                                                        <TableColumn fx:id="pointsColumn" prefWidth="70.0" text="Pts" />
-                                                        <TableColumn fx:id="winsColumn" prefWidth="60.0" text="W" />
-                                                        <TableColumn fx:id="drawsColumn" prefWidth="60.0" text="D" />
-                                                        <TableColumn fx:id="lossesColumn" prefWidth="60.0" text="L" />
-                                                        <TableColumn fx:id="playedColumn" prefWidth="80.0" text="Played" />
-                                                        <TableColumn fx:id="byeColumn" prefWidth="70.0" text="BYE" />
-                                                    </columns>
-                                                </TableView>
-                                            </content>
-                                        </Tab>
-                                    </tabs>
-                                </TabPane>
+                                <TableView fx:id="globalPlayersTable" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="globalPlayerNumberColumn" prefWidth="60.0" text="#" />
+                                        <TableColumn fx:id="globalPlayerNameColumn" prefWidth="320.0" text="Name" />
+                                        <TableColumn fx:id="globalPlayerIdColumn" prefWidth="160.0" text="ID" />
+                                    </columns>
+                                </TableView>
                             </children>
                             <padding>
-                                <Insets bottom="14.0" left="14.0" right="14.0" top="14.0" />
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
                             </padding>
                         </VBox>
-                    </children>
-                </StackPane>
-            </items>
-        </SplitPane>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
     </center>
 
     <bottom>

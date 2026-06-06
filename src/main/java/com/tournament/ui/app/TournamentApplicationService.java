@@ -2,10 +2,12 @@ package com.tournament.ui.app;
 
 import com.tournament.model.Match;
 import com.tournament.model.Player;
+import com.tournament.model.PlayerDirectory;
 import com.tournament.model.Round;
 import com.tournament.model.Tournament;
 import com.tournament.model.TournamentState;
 import com.tournament.model.TournamentType;
+import com.tournament.persistence.PlayerDirectoryRepository;
 import com.tournament.persistence.TournamentRepository;
 import com.tournament.service.TournamentService;
 import com.tournament.ui.viewmodel.MatchView;
@@ -17,6 +19,7 @@ import com.tournament.ui.viewmodel.TournamentSummary;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -26,25 +29,48 @@ public class TournamentApplicationService {
     private final TournamentService tournamentService;
     private final RankingCalculator rankingCalculator;
     private final TournamentRepository repository;
+    private final PlayerDirectoryRepository playerDirectoryRepository;
     private final List<Tournament> tournaments = new ArrayList<>();
+    private PlayerDirectory playerDirectory;
 
     public TournamentApplicationService() {
-        this(new TournamentService(), new RankingCalculator(), new TournamentRepository());
+        this(new TournamentService(), new RankingCalculator(), new TournamentRepository(), new PlayerDirectoryRepository(), new PlayerDirectory());
     }
 
     public TournamentApplicationService(TournamentService tournamentService, RankingCalculator rankingCalculator, TournamentRepository repository) {
+        this(tournamentService, rankingCalculator, repository, new PlayerDirectoryRepository(), new PlayerDirectory());
+    }
+
+    public TournamentApplicationService(
+            TournamentService tournamentService,
+            RankingCalculator rankingCalculator,
+            TournamentRepository repository,
+            PlayerDirectoryRepository playerDirectoryRepository,
+            PlayerDirectory playerDirectory) {
         this.tournamentService = tournamentService;
         this.rankingCalculator = rankingCalculator;
         this.repository = repository;
+        this.playerDirectoryRepository = playerDirectoryRepository;
+        this.playerDirectory = playerDirectory;
     }
 
     public void loadSavedTournaments() {
+        loadSavedData();
+    }
+
+    public void loadSavedData() {
         try {
             List<Tournament> loaded = repository.load();
             tournaments.clear();
             tournaments.addAll(loaded);
-        } catch (IOException e) {
-            throw new UiActionException("Failed to load saved tournaments: " + e.getMessage());
+
+            playerDirectory = playerDirectoryRepository.load();
+            boolean changed = importTournamentPlayers();
+            if (changed) {
+                playerDirectoryRepository.save(playerDirectory);
+            }
+        } catch (IOException | IllegalArgumentException e) {
+            throw new UiActionException("Failed to load saved data: " + e.getMessage());
         }
     }
 
@@ -63,8 +89,45 @@ public class TournamentApplicationService {
                 .toList();
     }
 
+    public List<PlayerRow> getPlayers() {
+        return getPlayerBase().stream()
+                .sorted(Comparator.comparing(Player::name, String.CASE_INSENSITIVE_ORDER))
+                .map(player -> new PlayerRow(player.playerId(), player.name()))
+                .toList();
+    }
+
+    public List<Player> getPlayerBase() {
+        return playerDirectory.getPlayers().stream()
+                .sorted(Comparator.comparing(Player::name, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
     public TournamentDetails getDetails(Tournament tournament) {
         return toDetails(requireTournament(tournament));
+    }
+
+    public Player createPlayer(String name) {
+        try {
+            Player player = new Player(name);
+            playerDirectory.addPlayer(player);
+            savePlayerDirectory();
+            return player;
+        } catch (IllegalArgumentException e) {
+            throw new UiActionException(e.getMessage());
+        }
+    }
+
+    public Player renamePlayer(Player player, String newName) {
+        if (player == null) {
+            throw new UiActionException("Player cannot be null");
+        }
+        try {
+            Player renamed = playerDirectory.renamePlayer(player.playerId(), newName);
+            savePlayerDirectory();
+            return renamed;
+        } catch (IllegalArgumentException e) {
+            throw new UiActionException(e.getMessage());
+        }
     }
 
     public Tournament createTournament(String name, TournamentType type, List<String> playerNames) {
@@ -72,8 +135,27 @@ public class TournamentApplicationService {
             validateTournamentInput(name, type, playerNames);
             List<Player> players = playerNames.stream()
                     .map(String::trim)
-                    .map(Player::new)
+                    .map(playerDirectory::resolveOrCreate)
                     .toList();
+            Tournament tournament = tournamentService.createTournament(name.trim(), players, type);
+            tournaments.add(tournament);
+            savePlayerDirectory();
+            return tournament;
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            throw new UiActionException(e.getMessage());
+        }
+    }
+
+    public Tournament createTournamentWithPlayers(String name, TournamentType type, List<Player> players) {
+        try {
+            validateTournamentPlayersInput(name, type, players);
+            boolean changed = false;
+            for (Player player : players) {
+                changed |= addPlayerToDirectoryIfMissing(player);
+            }
+            if (changed) {
+                savePlayerDirectory();
+            }
             Tournament tournament = tournamentService.createTournament(name.trim(), players, type);
             tournaments.add(tournament);
             return tournament;
@@ -96,7 +178,30 @@ public class TournamentApplicationService {
         tournament = requireTournament(tournament);
         try {
             validatePlayerName(tournament, playerName);
-            tournamentService.addPlayer(tournament, new Player(playerName.trim()));
+            Player player = playerDirectory.resolveOrCreate(playerName.trim());
+            tournamentService.addPlayer(tournament, player);
+            savePlayerDirectory();
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            throw new UiActionException(e.getMessage());
+        }
+    }
+
+    public void addPlayer(Tournament tournament, Player player) {
+        addPlayers(tournament, List.of(player));
+    }
+
+    public void addPlayers(Tournament tournament, List<Player> players) {
+        tournament = requireTournament(tournament);
+        try {
+            validatePlayersForTournament(tournament, players);
+            boolean changed = false;
+            for (Player player : players) {
+                changed |= addPlayerToDirectoryIfMissing(player);
+                tournamentService.addPlayer(tournament, player);
+            }
+            if (changed) {
+                savePlayerDirectory();
+            }
         } catch (IllegalArgumentException | IllegalStateException e) {
             throw new UiActionException(e.getMessage());
         }
@@ -212,6 +317,33 @@ public class TournamentApplicationService {
         }
     }
 
+    private void validateTournamentPlayersInput(String name, TournamentType type, List<Player> players) {
+        if (name == null || name.isBlank()) {
+            throw new UiActionException("Tournament name cannot be empty");
+        }
+        if (type == null) {
+            throw new UiActionException("Tournament type cannot be null");
+        }
+        if (players == null || players.size() < 2) {
+            throw new UiActionException("Need at least 2 players");
+        }
+
+        Set<Player> uniquePlayers = new LinkedHashSet<>();
+        Set<String> normalizedNames = new LinkedHashSet<>();
+        for (Player player : players) {
+            if (player == null) {
+                throw new UiActionException("Player cannot be null");
+            }
+            if (!uniquePlayers.add(player)) {
+                throw new UiActionException("Player already exists in tournament");
+            }
+            String normalizedName = player.name().trim().toLowerCase(Locale.ROOT);
+            if (!normalizedNames.add(normalizedName)) {
+                throw new UiActionException("Player names must be unique");
+            }
+        }
+    }
+
     private void validatePlayerName(Tournament tournament, String playerName) {
         if (playerName == null || playerName.isBlank()) {
             throw new UiActionException("Player name cannot be empty");
@@ -223,6 +355,62 @@ public class TournamentApplicationService {
                 .anyMatch(normalizedName::equals);
         if (duplicate) {
             throw new UiActionException("Player names must be unique");
+        }
+    }
+
+    private void validatePlayersForTournament(Tournament tournament, List<Player> playersToAdd) {
+        if (playersToAdd == null || playersToAdd.isEmpty()) {
+            throw new UiActionException("Select at least one player");
+        }
+
+        Set<Player> uniquePlayers = new LinkedHashSet<>(tournament.getPlayers());
+        Set<String> normalizedNames = tournament.getPlayers().stream()
+                .map(Player::name)
+                .map(name -> name.toLowerCase(Locale.ROOT))
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+
+        for (Player player : playersToAdd) {
+            if (player == null) {
+                throw new UiActionException("Player cannot be null");
+            }
+            if (!uniquePlayers.add(player)) {
+                throw new UiActionException("Player already exists in tournament");
+            }
+            String normalizedName = player.name().trim().toLowerCase(Locale.ROOT);
+            if (!normalizedNames.add(normalizedName)) {
+                throw new UiActionException("Player names must be unique");
+            }
+        }
+    }
+
+    private boolean importTournamentPlayers() {
+        boolean changed = false;
+        for (Tournament tournament : tournaments) {
+            for (Player player : tournament.getPlayers()) {
+                if (!player.equals(Player.BYE)) {
+                    changed |= addPlayerToDirectoryIfMissing(player);
+                }
+            }
+        }
+        return changed;
+    }
+
+    private boolean addPlayerToDirectoryIfMissing(Player player) {
+        if (playerDirectory.findById(player.playerId()).isPresent()) {
+            return false;
+        }
+        if (playerDirectory.findByName(player.name()).isPresent()) {
+            return false;
+        }
+        playerDirectory.addPlayer(player);
+        return true;
+    }
+
+    private void savePlayerDirectory() {
+        try {
+            playerDirectoryRepository.save(playerDirectory);
+        } catch (IOException e) {
+            throw new UiActionException("Failed to save player directory: " + e.getMessage());
         }
     }
 

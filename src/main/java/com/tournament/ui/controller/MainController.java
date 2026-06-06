@@ -1,8 +1,8 @@
 package com.tournament.ui.controller;
 
+import com.tournament.model.Player;
 import com.tournament.model.Tournament;
 import com.tournament.model.TournamentState;
-import com.tournament.model.TournamentType;
 import com.tournament.ui.app.TournamentApplicationService;
 import com.tournament.ui.app.UiActionException;
 import com.tournament.ui.viewmodel.MatchView;
@@ -35,7 +35,12 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class MainController {
     private final TournamentApplicationService applicationService = new TournamentApplicationService();
@@ -66,6 +71,10 @@ public class MainController {
     @FXML private TableColumn<RankingRow, String> lossesColumn;
     @FXML private TableColumn<RankingRow, String> playedColumn;
     @FXML private TableColumn<RankingRow, String> byeColumn;
+    @FXML private TableView<PlayerRow> globalPlayersTable;
+    @FXML private TableColumn<PlayerRow, String> globalPlayerNumberColumn;
+    @FXML private TableColumn<PlayerRow, String> globalPlayerNameColumn;
+    @FXML private TableColumn<PlayerRow, String> globalPlayerIdColumn;
 
     private Tournament selectedTournament;
     private TournamentDetails selectedDetails;
@@ -75,12 +84,14 @@ public class MainController {
         configureTournamentList();
         configurePlayersTable();
         configureRankingTable();
+        configureGlobalPlayersTable();
         try {
-            applicationService.loadSavedTournaments();
+            applicationService.loadSavedData();
         } catch (UiActionException e) {
-            showError("Failed to load saved tournaments: " + e.getMessage());
+            showError("Failed to load saved data: " + e.getMessage());
         }
         refreshTournamentList(null);
+        refreshGlobalViews();
     }
 
     @FXML
@@ -97,18 +108,26 @@ public class MainController {
             dialogStage.initOwner(tournamentListView.getScene().getWindow());
             dialogStage.setScene(createStyledScene(root));
             dialogStage.setMinWidth(420);
-            dialogStage.setMinHeight(420);
+            dialogStage.setMinHeight(220);
             dialogStage.showAndWait();
 
             if (controller.isConfirmed()) {
-                Tournament created = applicationService.createTournament(
-                        controller.getTournamentName(),
-                        controller.getTournamentType(),
-                        controller.getPlayerNames()
-                );
-                applicationService.saveTournament(created);
-                refreshTournamentList(created);
-                setStatus("Tournament created");
+                openPlayerSelectionDialog("Select tournament players", 2, Set.of())
+                        .ifPresent(selection -> {
+                            try {
+                                Tournament created = applicationService.createTournamentWithPlayers(
+                                        controller.getTournamentName(),
+                                        controller.getTournamentType(),
+                                        toPlayers(selection)
+                                );
+                                applicationService.saveTournament(created);
+                                refreshTournamentList(created);
+                                refreshGlobalViews();
+                                setStatus("Tournament created");
+                            } catch (UiActionException e) {
+                                showError(e.getMessage());
+                            }
+                        });
             }
         } catch (IOException e) {
             showError("Cannot open tournament dialog");
@@ -149,19 +168,19 @@ public class MainController {
             return;
         }
 
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Add player");
-        dialog.setHeaderText("Add player to " + selectedDetails.name());
-        dialog.setContentText("Player name:");
-        dialog.getEditor().setPromptText("Player name");
-        styleAddPlayerDialog(dialog);
-        dialog.showAndWait()
-                .map(String::trim)
-                .filter(name -> !name.isBlank())
-                .ifPresent(name -> handleAction(
-                        () -> applicationService.addPlayer(selectedTournament, name),
+        try {
+            Set<UUID> tournamentPlayerIds = selectedTournament.getPlayers().stream()
+                    .map(Player::playerId)
+                    .collect(Collectors.toSet());
+            openPlayerSelectionDialog("Add players", 1, tournamentPlayerIds).ifPresent(selection ->
+                handleAction(
+                        () -> applicationService.addPlayers(selectedTournament, toPlayers(selection)),
                         "Player added"
-                ));
+                )
+            );
+        } catch (UiActionException e) {
+            showError(e.getMessage());
+        }
     }
 
     @FXML
@@ -182,6 +201,61 @@ public class MainController {
     @FXML
     private void onSimulateTournament() {
         runSelectedAction(() -> applicationService.simulateTournament(selectedTournament), "Tournament simulated");
+    }
+
+    @FXML
+    private void onAddGlobalPlayer() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add player");
+        dialog.setHeaderText("Add player to player base");
+        dialog.setContentText("Player name:");
+        dialog.getEditor().setPromptText("Player name");
+        styleAddPlayerDialog(dialog);
+        dialog.showAndWait()
+                .map(String::trim)
+                .filter(name -> !name.isBlank())
+                .ifPresent(name -> {
+                    try {
+                        applicationService.createPlayer(name);
+                        refreshGlobalViews();
+                        setStatus("Player added");
+                    } catch (UiActionException e) {
+                        showError(e.getMessage());
+                    }
+                });
+    }
+
+    @FXML
+    private void onRenameGlobalPlayer() {
+        PlayerRow selected = globalPlayersTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog(selected.name());
+        dialog.setTitle("Rename player");
+        dialog.setHeaderText("Rename " + selected.name());
+        dialog.setContentText("Player name:");
+        styleAddPlayerDialog(dialog);
+        dialog.showAndWait()
+                .map(String::trim)
+                .filter(name -> !name.isBlank())
+                .ifPresent(name -> {
+                    try {
+                        Player player = applicationService.getPlayerBase().stream()
+                                .filter(candidate -> candidate.playerId().equals(selected.playerId()))
+                                .findFirst()
+                                .orElseThrow(() -> new UiActionException("Player not found"));
+                        applicationService.renamePlayer(player, name);
+                        refreshGlobalViews();
+                        if (selectedTournament != null) {
+                            showTournament(selectedTournament);
+                        }
+                        setStatus("Player renamed");
+                    } catch (UiActionException e) {
+                        showError(e.getMessage());
+                    }
+                });
     }
 
     private void configureTournamentList() {
@@ -232,6 +306,15 @@ public class MainController {
         rankingTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
     }
 
+    private void configureGlobalPlayersTable() {
+        globalPlayerNumberColumn.setCellValueFactory(cell -> new SimpleStringProperty(
+                String.valueOf(globalPlayersTable.getItems().indexOf(cell.getValue()) + 1)
+        ));
+        globalPlayerNameColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().name()));
+        globalPlayerIdColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().shortId()));
+        globalPlayersTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+    }
+
     private void refreshTournamentList(Tournament tournamentToSelect) {
         tournamentListView.setItems(FXCollections.observableArrayList(applicationService.getTournaments()));
         if (tournamentToSelect != null) {
@@ -245,6 +328,42 @@ public class MainController {
         } else {
             selectDefaultOrEmpty();
         }
+    }
+
+    private void refreshGlobalViews() {
+        globalPlayersTable.setItems(FXCollections.observableArrayList(applicationService.getPlayers()));
+    }
+
+    private Optional<PlayerSelectionDialogController> openPlayerSelectionDialog(String title, int minimumSelectionCount, Set<UUID> excludedPlayerIds) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/PlayerSelectionDialog.fxml"));
+            Parent root = loader.load();
+            PlayerSelectionDialogController controller = loader.getController();
+            controller.setPlayers(applicationService.getPlayerBase(), excludedPlayerIds);
+            controller.setMinimumSelectionCount(minimumSelectionCount);
+
+            Stage dialogStage = new Stage();
+            controller.setDialogStage(dialogStage);
+            dialogStage.setTitle(title);
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
+            dialogStage.initOwner(tournamentListView.getScene().getWindow());
+            dialogStage.setScene(createStyledScene(root));
+            dialogStage.setMinWidth(620);
+            dialogStage.setMinHeight(480);
+            dialogStage.showAndWait();
+
+            return controller.isConfirmed() ? Optional.of(controller) : Optional.empty();
+        } catch (IOException e) {
+            throw new UiActionException("Cannot open player selection dialog");
+        }
+    }
+
+    private List<Player> toPlayers(PlayerSelectionDialogController selection) {
+        List<Player> players = new ArrayList<>(selection.getSelectedPlayers());
+        selection.getNewPlayerNames().stream()
+                .map(Player::new)
+                .forEach(players::add);
+        return List.copyOf(players);
     }
 
     private void selectDefaultOrEmpty() {
@@ -442,6 +561,7 @@ public class MainController {
                 applicationService.saveTournament(tournamentToSelect);
             }
             refreshTournamentList(tournamentToSelect);
+            refreshGlobalViews();
             if (tournamentToSelect != null) {
                 showTournament(tournamentToSelect);
             }
