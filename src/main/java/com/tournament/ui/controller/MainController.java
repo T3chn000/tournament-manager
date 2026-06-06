@@ -3,6 +3,7 @@ package com.tournament.ui.controller;
 import com.tournament.model.Player;
 import com.tournament.model.Tournament;
 import com.tournament.model.TournamentState;
+import com.tournament.ui.TournamentManagerApp;
 import com.tournament.ui.app.TournamentApplicationService;
 import com.tournament.ui.app.UiActionException;
 import com.tournament.ui.viewmodel.MatchView;
@@ -30,6 +31,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.Dialog;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -104,6 +106,7 @@ public class MainController {
             Stage dialogStage = new Stage();
             controller.setDialogStage(dialogStage);
             dialogStage.setTitle("New tournament");
+            TournamentManagerApp.applyApplicationIcon(dialogStage);
             dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.initOwner(tournamentListView.getScene().getWindow());
             dialogStage.setScene(createStyledScene(root));
@@ -150,6 +153,7 @@ public class MainController {
                 ButtonType.CANCEL
         );
         confirmation.setTitle("Delete tournament");
+        styleDeleteTournamentDialog(confirmation, deleteType);
         Optional<ButtonType> result = confirmation.showAndWait();
         if (result.isPresent() && result.get() == deleteType) {
             try {
@@ -210,7 +214,7 @@ public class MainController {
         dialog.setHeaderText("Add player to player base");
         dialog.setContentText("Player name:");
         dialog.getEditor().setPromptText("Player name");
-        styleAddPlayerDialog(dialog);
+        styleManagePlayerDialog(dialog, "Add");
         dialog.showAndWait()
                 .map(String::trim)
                 .filter(name -> !name.isBlank())
@@ -236,7 +240,7 @@ public class MainController {
         dialog.setTitle("Rename player");
         dialog.setHeaderText("Rename " + selected.name());
         dialog.setContentText("Player name:");
-        styleAddPlayerDialog(dialog);
+        styleManagePlayerDialog(dialog, "Rename");
         dialog.showAndWait()
                 .map(String::trim)
                 .filter(name -> !name.isBlank())
@@ -345,6 +349,7 @@ public class MainController {
             Stage dialogStage = new Stage();
             controller.setDialogStage(dialogStage);
             dialogStage.setTitle(title);
+            TournamentManagerApp.applyApplicationIcon(dialogStage);
             dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.initOwner(tournamentListView.getScene().getWindow());
             dialogStage.setScene(createStyledScene(root));
@@ -486,6 +491,7 @@ public class MainController {
             controller.setDialogStage(dialogStage);
             controller.setMatch(match, selectedDetails.type());
             dialogStage.setTitle("Match result");
+            TournamentManagerApp.applyApplicationIcon(dialogStage);
             dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.initOwner(tournamentListView.getScene().getWindow());
             dialogStage.setScene(createStyledScene(root));
@@ -531,19 +537,37 @@ public class MainController {
         return scene;
     }
 
-    private void styleAddPlayerDialog(TextInputDialog dialog) {
+    private void styleManagePlayerDialog(TextInputDialog dialog, String primaryButtonText) {
+        DialogPane dialogPane = styleDialog(dialog, "add-player-dialog", 380, 360);
+
+        Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
+        okButton.setText(primaryButtonText);
+        okButton.getStyleClass().add("primary-button");
+    }
+
+    private void styleDeleteTournamentDialog(Alert dialog, ButtonType deleteType) {
+        DialogPane dialogPane = styleDialog(dialog, "delete-tournament-dialog", 420, 400);
+
+        Button deleteButton = (Button) dialogPane.lookupButton(deleteType);
+        deleteButton.getStyleClass().add("danger-button");
+    }
+
+    private DialogPane styleDialog(Dialog<?> dialog, String styleClass, double prefWidth, double minWidth) {
+        TournamentManagerApp.applyApplicationIcon(dialog);
+
         DialogPane dialogPane = dialog.getDialogPane();
         dialogPane.getStylesheets().add(getClass().getResource("/css/app.css").toExternalForm());
-        dialogPane.getStyleClass().addAll("app-dialog-pane", "add-player-dialog");
-        dialogPane.setPrefWidth(380);
-        dialogPane.setMinWidth(360);
-
-        Button addButton = (Button) dialogPane.lookupButton(ButtonType.OK);
-        addButton.setText("Add");
-        addButton.getStyleClass().add("primary-button");
+        dialogPane.setGraphic(null);
+        dialogPane.getStyleClass().addAll("app-dialog-pane", styleClass);
+        dialogPane.setPrefWidth(prefWidth);
+        dialogPane.setMinWidth(minWidth);
 
         Button cancelButton = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
-        cancelButton.setText("Cancel");
+        if (cancelButton != null) {
+            cancelButton.setText("Cancel");
+        }
+
+        return dialogPane;
     }
 
     private void runSelectedAction(Runnable action, String successMessage) {

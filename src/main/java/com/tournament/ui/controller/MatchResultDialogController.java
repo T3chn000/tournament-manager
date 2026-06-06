@@ -11,6 +11,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class MatchResultDialogController {
+    @FXML private VBox dialogRoot;
     @FXML private Label player1Label;
     @FXML private Label player2Label;
     @FXML private Spinner<Integer> player1PointsSpinner;
