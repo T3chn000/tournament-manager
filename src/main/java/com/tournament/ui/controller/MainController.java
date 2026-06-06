@@ -3,6 +3,7 @@ package com.tournament.ui.controller;
 import com.tournament.model.Player;
 import com.tournament.model.Tournament;
 import com.tournament.model.TournamentState;
+import com.tournament.ui.TournamentManagerApp;
 import com.tournament.ui.app.TournamentApplicationService;
 import com.tournament.ui.app.UiActionException;
 import com.tournament.ui.viewmodel.MatchView;
@@ -104,6 +105,7 @@ public class MainController {
             Stage dialogStage = new Stage();
             controller.setDialogStage(dialogStage);
             dialogStage.setTitle("New tournament");
+            TournamentManagerApp.applyApplicationIcon(dialogStage);
             dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.initOwner(tournamentListView.getScene().getWindow());
             dialogStage.setScene(createStyledScene(root));
@@ -150,6 +152,7 @@ public class MainController {
                 ButtonType.CANCEL
         );
         confirmation.setTitle("Delete tournament");
+        TournamentManagerApp.applyApplicationIcon(confirmation);
         Optional<ButtonType> result = confirmation.showAndWait();
         if (result.isPresent() && result.get() == deleteType) {
             try {
@@ -345,6 +348,7 @@ public class MainController {
             Stage dialogStage = new Stage();
             controller.setDialogStage(dialogStage);
             dialogStage.setTitle(title);
+            TournamentManagerApp.applyApplicationIcon(dialogStage);
             dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.initOwner(tournamentListView.getScene().getWindow());
             dialogStage.setScene(createStyledScene(root));
@@ -486,6 +490,7 @@ public class MainController {
             controller.setDialogStage(dialogStage);
             controller.setMatch(match, selectedDetails.type());
             dialogStage.setTitle("Match result");
+            TournamentManagerApp.applyApplicationIcon(dialogStage);
             dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.initOwner(tournamentListView.getScene().getWindow());
             dialogStage.setScene(createStyledScene(root));
@@ -532,6 +537,7 @@ public class MainController {
     }
 
     private void styleAddPlayerDialog(TextInputDialog dialog) {
+        TournamentManagerApp.applyApplicationIcon(dialog);
         DialogPane dialogPane = dialog.getDialogPane();
         dialogPane.getStylesheets().add(getClass().getResource("/css/app.css").toExternalForm());
         dialogPane.getStyleClass().addAll("app-dialog-pane", "add-player-dialog");
