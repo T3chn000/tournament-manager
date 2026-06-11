@@ -10,6 +10,9 @@ out/
 target/
 docs/javadoc/
 
+### Application data ###
+data/
+
 ### Eclipse ###
 .apt_generated
 .classpath

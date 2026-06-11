@@ -18,7 +18,7 @@
         <GridPane hgap="10.0" vgap="10.0">
             <children>
                 <Label text="Name" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                <TextField fx:id="tournamentNameField" promptText="Spring Cup" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                <TextField fx:id="tournamentNameField" onAction="#onCreate" promptText="Spring Cup" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
                 <Label text="Type" GridPane.columnIndex="0" GridPane.rowIndex="1" />
                 <ComboBox fx:id="tournamentTypeComboBox" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
@@ -38,7 +38,7 @@
         <HBox alignment="CENTER_RIGHT" spacing="8.0">
             <children>
                 <Button onAction="#onCancel" text="Cancel" />
-                <Button onAction="#onCreate" styleClass="primary-button" text="Create" />
+                <Button defaultButton="true" onAction="#onCreate" styleClass="primary-button" text="Create" />
             </children>
         </HBox>
     </children>

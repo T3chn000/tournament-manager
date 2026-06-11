@@ -12,6 +12,7 @@ import com.tournament.persistence.TournamentRepository;
 import com.tournament.service.TournamentService;
 import com.tournament.ui.viewmodel.MatchView;
 import com.tournament.ui.viewmodel.PlayerRow;
+import com.tournament.ui.viewmodel.RankingRow;
 import com.tournament.ui.viewmodel.RoundView;
 import com.tournament.ui.viewmodel.TournamentDetails;
 import com.tournament.ui.viewmodel.TournamentSummary;
@@ -23,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Application-level facade used by JavaFX controllers.
@@ -95,7 +97,7 @@ public class TournamentApplicationService {
     public void saveTournament(Tournament tournament) {
         tournament = requireTournament(tournament);
         try {
-            repository.save(tournament);
+            repository.save(withCurrentPlayerNames(tournament));
         } catch (IOException e) {
             throw new UiActionException("Failed to save tournament: " + e.getMessage());
         }
@@ -176,6 +178,7 @@ public class TournamentApplicationService {
         try {
             Player renamed = playerDirectory.renamePlayer(player.playerId(), newName);
             savePlayerDirectory();
+            saveTournamentsContaining(renamed.playerId());
             return renamed;
         } catch (IllegalArgumentException e) {
             throw new UiActionException(e.getMessage());
@@ -469,6 +472,85 @@ public class TournamentApplicationService {
     }
 
     /**
+     * Persists tournaments that reference a renamed player using current display names.
+     */
+    private void saveTournamentsContaining(UUID playerId) {
+        try {
+            for (Tournament tournament : tournaments) {
+                if (containsPlayer(tournament, playerId)) {
+                    repository.save(withCurrentPlayerNames(tournament));
+                }
+            }
+        } catch (IOException e) {
+            throw new UiActionException("Failed to save renamed player in tournaments: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Checks whether a tournament stores the given player identifier.
+     */
+    private boolean containsPlayer(Tournament tournament, UUID playerId) {
+        return tournament.getPlayers().stream()
+                .anyMatch(player -> player.playerId().equals(playerId));
+    }
+
+    /**
+     * Creates a save-only copy with player names synchronized from the player directory.
+     */
+    private Tournament withCurrentPlayerNames(Tournament tournament) {
+        List<Player> players = tournament.getPlayers().stream()
+                .map(this::withCurrentPlayerName)
+                .toList();
+        List<Round> rounds = tournament.getRounds().stream()
+                .map(this::withCurrentPlayerNames)
+                .toList();
+        return new Tournament(
+                tournament.getTournamentId(),
+                tournament.getName(),
+                players,
+                rounds,
+                tournament.getType(),
+                tournament.getState()
+        );
+    }
+
+    /**
+     * Creates a round copy whose matches use current player names.
+     */
+    private Round withCurrentPlayerNames(Round round) {
+        List<Match> matches = round.getMatches().stream()
+                .map(this::withCurrentPlayerNames)
+                .toList();
+        return new Round(round.getRoundNumber(), matches);
+    }
+
+    /**
+     * Creates a match copy whose participants and tie-break winner use current player names.
+     */
+    private Match withCurrentPlayerNames(Match match) {
+        Player tieBreakWinner = match.getTieBreakWinner() == null
+                ? null
+                : withCurrentPlayerName(match.getTieBreakWinner());
+        return new Match(
+                withCurrentPlayerName(match.getPlayer1()),
+                withCurrentPlayerName(match.getPlayer2()),
+                match.getPlayer1Points(),
+                match.getPlayer2Points(),
+                tieBreakWinner
+        );
+    }
+
+    /**
+     * Returns the current player-directory object for the same identifier when available.
+     */
+    private Player withCurrentPlayerName(Player player) {
+        if (player.equals(Player.BYE)) {
+            return Player.BYE;
+        }
+        return playerDirectory.findById(player.playerId()).orElse(player);
+    }
+
+    /**
      * Converts a tournament aggregate into the full details view model.
      */
     private TournamentDetails toDetails(Tournament tournament) {
@@ -477,12 +559,14 @@ public class TournamentApplicationService {
                 tournament.getType(),
                 tournament.getState(),
                 tournament.getPlayers().stream()
-                        .map(player -> new PlayerRow(player.playerId(), player.name()))
+                        .map(player -> new PlayerRow(player.playerId(), getDisplayName(player)))
                         .toList(),
                 tournament.getRounds().stream()
                         .map(round -> toRoundView(round, tournament))
                         .toList(),
-                rankingCalculator.calculate(tournament)
+                rankingCalculator.calculate(tournament).stream()
+                        .map(this::withCurrentPlayerName)
+                        .toList()
         );
     }
 
@@ -509,7 +593,7 @@ public class TournamentApplicationService {
         for (int i = 0; i < matches.size(); i++) {
             Match match = matches.get(i);
             String result = match.getResult() == null ? "not played" : match.getResult().name();
-            String winner = match.getWinner() == null ? "-" : match.getWinner().name();
+            String winner = match.getWinner() == null ? "-" : getDisplayName(match.getWinner());
             boolean editable = tournament.getState() == TournamentState.STARTED && !match.isByeMatch();
             String score = match.getScore();
             if (match.isDraw() && match.getTieBreakWinner() != null) {
@@ -518,8 +602,8 @@ public class TournamentApplicationService {
             Integer tieBreakWinnerIndex = getTieBreakWinnerIndex(match);
             matchViews.add(new MatchView(
                     i,
-                    match.getPlayer1().name(),
-                    match.getPlayer2().name(),
+                    getDisplayName(match.getPlayer1()),
+                    getDisplayName(match.getPlayer2()),
                     score,
                     match.getPlayer1Points(),
                     match.getPlayer2Points(),
@@ -533,6 +617,42 @@ public class TournamentApplicationService {
             ));
         }
         return new RoundView(round.getRoundNumber(), round.isFinished(), round.hasDraws(), List.copyOf(matchViews));
+    }
+
+    /**
+     * Replaces stale tournament player names with the current player-directory name.
+     */
+    private RankingRow withCurrentPlayerName(RankingRow row) {
+        return new RankingRow(
+                row.place(),
+                row.playerId(),
+                getDisplayName(row.playerId(), row.playerName()),
+                row.points(),
+                row.wins(),
+                row.draws(),
+                row.losses(),
+                row.playedMatches(),
+                row.byeCount()
+        );
+    }
+
+    /**
+     * Resolves the current display name for a player while preserving BYE labels.
+     */
+    private String getDisplayName(Player player) {
+        if (player.equals(Player.BYE)) {
+            return Player.BYE.name();
+        }
+        return getDisplayName(player.playerId(), player.name());
+    }
+
+    /**
+     * Looks up a current player name by identifier and falls back to stored tournament data.
+     */
+    private String getDisplayName(UUID playerId, String fallbackName) {
+        return playerDirectory.findById(playerId)
+                .map(Player::name)
+                .orElse(fallbackName);
     }
 
     /**
