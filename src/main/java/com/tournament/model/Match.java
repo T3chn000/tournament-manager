@@ -1,17 +1,11 @@
 package com.tournament.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * A single pairing between two players, including score and optional tie-break data.
  *
  * <p>Matches against {@link Player#BYE} are resolved automatically and cannot
  * receive manual point values.</p>
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Match {
     private final Player player1;
     private final Player player2;
@@ -21,7 +15,7 @@ public class Match {
     private Player tieBreakWinner;
 
     /**
-     * Creates a match from persisted data.
+     * Creates a match using given data.
      *
      * @param player1 first player
      * @param player2 second player
@@ -29,20 +23,19 @@ public class Match {
      * @param player2Points optional points for the second player
      * @param tieBreakWinner optional winner used to resolve a draw
      */
-    @JsonCreator
     public Match(
-            @JsonProperty("player1") Player player1,
-            @JsonProperty("player2") Player player2,
-            @JsonProperty("player1Points") Integer player1Points,
-            @JsonProperty("player2Points") Integer player2Points,
-            @JsonProperty("tieBreakWinner") Player tieBreakWinner) {
+            Player player1,
+            Player player2,
+            Integer player1Points,
+            Integer player2Points,
+            Player tieBreakWinner) {
         validatePlayers(player1, player2);
-        validateSerializedScore(player1, player2, player1Points, player2Points, tieBreakWinner);
+        validateScore(player1, player2, player1Points, player2Points, tieBreakWinner);
         this.player1 = player1;
         this.player2 = player2;
         this.player1Points = player1Points;
         this.player2Points = player2Points;
-        this.result = deserializeResult(player1, player2, player1Points, player2Points);
+        this.result = deriveResult(player1, player2, player1Points, player2Points);
         this.tieBreakWinner = tieBreakWinner;
     }
 
@@ -76,12 +69,46 @@ public class Match {
         setPoints(player1Points, player2Points);
     }
 
+    /**
+     * Returns the first player in the pairing.
+     *
+     * @return first player
+     */
     public Player getPlayer1() {return this.player1;}
+
+    /**
+     * Returns the second player in the pairing.
+     *
+     * @return second player
+     */
     public Player getPlayer2() {return this.player2;}
+
+    /**
+     * Returns points recorded for the first player.
+     *
+     * @return first player points, or {@code null} when no score is recorded
+     */
     public Integer getPlayer1Points() { return player1Points; }
+
+    /**
+     * Returns points recorded for the second player.
+     *
+     * @return second player points, or {@code null} when no score is recorded
+     */
     public Integer getPlayer2Points() { return player2Points; }
-    @JsonIgnore
+
+    /**
+     * Returns the derived match result.
+     *
+     * @return match result, or {@code null} when the match is not played
+     */
     public MatchResult getResult() { return result; }
+
+    /**
+     * Returns the player selected to resolve a drawn match.
+     *
+     * @return tie-break winner, or {@code null} when no tie-break is set
+     */
     public Player getTieBreakWinner() { return tieBreakWinner; }
 
     /**
@@ -89,7 +116,6 @@ public class Match {
      *
      * @return winning player, or {@code null} when the match has no winner yet
      */
-    @JsonIgnore
     public Player getWinner() {
         if (result == null) {
             return null;
@@ -107,7 +133,6 @@ public class Match {
      *
      * @return losing player, or {@code null} when no winner is known
      */
-    @JsonIgnore
     public Player getLoser() {
         Player winner = getWinner();
         if (winner == null) {
@@ -121,22 +146,36 @@ public class Match {
      *
      * @return score in {@code "x : y"} form, or {@code "-"} for unplayed matches
      */
-    @JsonIgnore
     public String getScore() {
         if (player1Points == null || player2Points == null) {
             return "-";
         }
         return player1Points + " : " + player2Points;
     }
-    @JsonIgnore
+
+    /**
+     * Checks whether a result is available for this match.
+     *
+     * @return {@code true} when the match has a result
+     */
     public boolean isPlayed() {
         return result != null;
     }
-    @JsonIgnore
+
+    /**
+     * Checks whether the recorded score is a draw.
+     *
+     * @return {@code true} when the match result is a draw
+     */
     public boolean isDraw() {
         return result == MatchResult.DRAW;
     }
-    @JsonIgnore
+
+    /**
+     * Checks whether this match contains the BYE placeholder.
+     *
+     * @return {@code true} when either side is {@link Player#BYE}
+     */
     public boolean isByeMatch() {
         return hasPlayer(Player.BYE);
     }
@@ -190,6 +229,18 @@ public class Match {
     }
 
     /**
+     * Returns a compact textual representation of the match.
+     *
+     * @return player names, score, result and winner
+     */
+    @Override
+    public String toString() {
+        String winnerName = getWinner() == null ? "-" : getWinner().name();
+        return String.format("%s vs %s | score: %s | result: %s | winner: %s",
+                player1.name(), player2.name(), getScore(), result == null ? "not played" : result, winnerName);
+    }
+
+    /**
      * Converts a pair of point values into a result.
      */
     private static MatchResult resultFromPoints(Integer player1Points, Integer player2Points) {
@@ -218,12 +269,12 @@ public class Match {
     }
 
     /**
-     * Checks consistency of points and tie-break winner loaded from JSON.
+     * Checks consistency of points and given tie-break winner.
      *
-     * <p>This protects the domain model from accepting impossible saved states,
+     * <p>This protects the domain model from accepting impossible states,
      * such as a non-draw with a tie-break winner.</p>
      */
-    private static void validateSerializedScore(Player player1, Player player2, Integer player1Points, Integer player2Points, Player tieBreakWinner) {
+    private static void validateScore(Player player1, Player player2, Integer player1Points, Integer player2Points, Player tieBreakWinner) {
         boolean hasPlayer1Points = player1Points != null;
         boolean hasPlayer2Points = player2Points != null;
         if (hasPlayer1Points != hasPlayer2Points) {
@@ -235,7 +286,7 @@ public class Match {
 
         boolean byeMatch = player1.equals(Player.BYE) || player2.equals(Player.BYE);
         if (byeMatch) {
-            validateSerializedByeMatch(player1Points, player2Points, tieBreakWinner);
+            validateByeMatch(player1Points, player2Points, tieBreakWinner);
             return;
         }
 
@@ -251,12 +302,12 @@ public class Match {
     }
 
     /**
-     * Applies the special rules for persisted BYE matches.
+     * Applies the special rules for BYE matches.
      *
      * <p>BYE matches are automatic wins and therefore must not contain manual
      * points or tie-break data.</p>
      */
-    private static void validateSerializedByeMatch(Integer player1Points, Integer player2Points, Player tieBreakWinner) {
+    private static void validateByeMatch(Integer player1Points, Integer player2Points, Player tieBreakWinner) {
         if (player1Points != null || player2Points != null) {
             throw new IllegalArgumentException("BYE match cannot have points");
         }
@@ -266,9 +317,9 @@ public class Match {
     }
 
     /**
-     * Rebuilds the in-memory result from persisted match participants and points.
+     * Rebuilds the in-memory result from match participants and points.
      */
-    private static MatchResult deserializeResult(Player player1, Player player2, Integer player1Points, Integer player2Points) {
+    private static MatchResult deriveResult(Player player1, Player player2, Integer player1Points, Integer player2Points) {
         if (player1.equals(Player.BYE)) {
             return MatchResult.PLAYER2_WIN;
         }
@@ -276,12 +327,5 @@ public class Match {
             return MatchResult.PLAYER1_WIN;
         }
         return resultFromPoints(player1Points, player2Points);
-    }
-
-    @Override
-    public String toString() {
-        String winnerName = getWinner() == null ? "-" : getWinner().name();
-        return String.format("%s vs %s | score: %s | result: %s | winner: %s",
-                player1.name(), player2.name(), getScore(), result == null ? "not played" : result, winnerName);
     }
 }

@@ -13,11 +13,11 @@ import java.util.UUID;
  * reuse an existing player when a tournament is created from names.</p>
  */
 public class PlayerDirectory {
-    /**
-     * Mutable backing store kept private so callers cannot bypass validation.
-     */
     private final List<Player> players = new ArrayList<>();
 
+    /**
+     * Creates an empty player directory.
+     */
     public PlayerDirectory() {
         this(List.of());
     }
@@ -37,6 +37,11 @@ public class PlayerDirectory {
         }
     }
 
+    /**
+     * Returns all stored players.
+     *
+     * @return immutable player list
+     */
     public List<Player> getPlayers() {
         return List.copyOf(players);
     }

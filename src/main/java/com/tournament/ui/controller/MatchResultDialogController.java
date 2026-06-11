@@ -42,6 +42,11 @@ public class MatchResultDialogController {
         player2PointsSpinner.valueProperty().addListener((obs, oldVal, newVal) -> updateTieBreakVisibility());
     }
 
+    /**
+     * Sets the stage owned by this dialog controller.
+     *
+     * @param dialogStage dialog stage to close after user action
+     */
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
     }
@@ -78,12 +83,19 @@ public class MatchResultDialogController {
         tieBreakContainer.setManaged(isKnockoutDraw);
     }
 
+    /**
+     * Indicates whether the user accepted the edited result.
+     *
+     * @return {@code true} when the user confirmed the dialog
+     */
     public boolean isConfirmed() {
         return confirmed;
     }
 
     /**
      * Returns points entered for player one.
+     *
+     * @return points assigned to player one
      */
     public int getPlayer1Points() {
         return player1PointsSpinner.getValue();
@@ -91,6 +103,8 @@ public class MatchResultDialogController {
 
     /**
      * Returns points entered for player two.
+     *
+     * @return points assigned to player two
      */
     public int getPlayer2Points() {
         return player2PointsSpinner.getValue();

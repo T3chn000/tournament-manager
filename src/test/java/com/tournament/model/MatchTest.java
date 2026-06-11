@@ -1,9 +1,5 @@
 package com.tournament.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tournament.model.Match;
-import com.tournament.model.MatchResult;
-import com.tournament.model.Player;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -111,42 +107,6 @@ class MatchTest {
         assertTrue(match.isDraw());
         assertEquals(p1, match.getWinner());
         assertEquals(p2, match.getLoser());
-    }
-
-    @Test
-    void shouldSerializeMatchWithoutDerivedResult() throws Exception {
-        Match match = new Match(p1, p2, 3, 1);
-
-        String json = new ObjectMapper().writeValueAsString(match);
-
-        assertFalse(json.contains("\"result\""));
-    }
-
-    @Test
-    void shouldDeserializeResultFromPoints() throws Exception {
-        Match match = new Match(p1, p2, 3, 1);
-        ObjectMapper mapper = new ObjectMapper();
-
-        String json = mapper.writeValueAsString(match);
-        Match loadedMatch = mapper.readValue(json, Match.class);
-
-        assertEquals(MatchResult.PLAYER1_WIN, loadedMatch.getResult());
-        assertEquals(p1, loadedMatch.getWinner());
-        assertTrue(loadedMatch.isPlayed());
-    }
-
-    @Test
-    void shouldDeserializeResolvedDrawWithoutResultField() throws Exception {
-        Match match = new Match(p1, p2, 2, 2);
-        match.resolveDraw(p2);
-        ObjectMapper mapper = new ObjectMapper();
-
-        String json = mapper.writeValueAsString(match);
-        Match loadedMatch = mapper.readValue(json, Match.class);
-
-        assertFalse(json.contains("\"result\""));
-        assertEquals(MatchResult.DRAW, loadedMatch.getResult());
-        assertEquals(p2, loadedMatch.getWinner());
     }
 
     @Test

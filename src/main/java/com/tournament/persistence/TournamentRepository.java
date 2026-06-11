@@ -28,6 +28,9 @@ public class TournamentRepository {
     private final Path dataDirectory;
     private static final String DATA_DIR = "data/tournaments";
 
+    /**
+     * Creates a repository that stores tournaments in the default data directory.
+     */
     public TournamentRepository() {
         this(Paths.get(DATA_DIR));
     }

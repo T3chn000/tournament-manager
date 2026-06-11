@@ -51,9 +51,6 @@ import java.util.stream.Collectors;
  * tournament/player views, and opens the supporting dialogs.</p>
  */
 public class MainController {
-    /**
-     * Facade that owns application actions, persistence and conversion to view models.
-     */
     private final TournamentApplicationService applicationService = new TournamentApplicationService();
 
     @FXML private ListView<TournamentSummary> tournamentListView;
@@ -519,10 +516,7 @@ public class MainController {
         TableColumn<MatchView, String> winner = textColumn("Winner", MatchView::winnerName);
         TableColumn<MatchView, Void> action = new TableColumn<>("Action");
         action.setCellFactory(column -> new TableCell<>() {
-            /**
-             * Reused cell button to avoid creating a new button on every cell refresh.
-             */
-            private final Button button = new Button("Set result");
+            private final Button button = new Button("Set result"); //Reused cell button
 
             {
                 button.getStyleClass().add("table-action-button");

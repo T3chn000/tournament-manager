@@ -23,6 +23,9 @@ public class PlayerDirectoryRepository {
     private final ObjectMapper objectMapper;
     private final Path filePath;
 
+    /**
+     * Creates a repository that stores the player directory in the default file.
+     */
     public PlayerDirectoryRepository() {
         this(Paths.get(DATA_FILE));
     }

@@ -25,6 +25,8 @@ public record TournamentDetails(
 ) {
     /**
      * Returns the number of players in the tournament.
+     *
+     * @return player count
      */
     public int playerCount() {
         return players.size();
@@ -32,6 +34,8 @@ public record TournamentDetails(
 
     /**
      * Returns the number of generated rounds.
+     *
+     * @return round count
      */
     public int roundCount() {
         return rounds.size();

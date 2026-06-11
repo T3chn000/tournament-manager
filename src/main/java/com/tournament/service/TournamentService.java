@@ -14,14 +14,14 @@ import java.util.UUID;
  * tournament aggregate, and provides simple random simulation helpers.</p>
  */
 public class TournamentService {
-
-    /**
-     * Random source used only for simulation helpers.
-     */
-    private final Random random = new Random();
+    private final Random random = new Random(); //used for simulation
 
     /**
      * Creates a tournament with the default name.
+     *
+     * @param players initial players
+     * @param type tournament format
+     * @return created tournament
      */
     public Tournament createTournament(List<Player> players, TournamentType type) {
         return new Tournament(players, type);
@@ -29,6 +29,11 @@ public class TournamentService {
 
     /**
      * Creates a named tournament.
+     *
+     * @param name tournament name
+     * @param players initial players
+     * @param type tournament format
+     * @return created tournament
      */
     public Tournament createTournament(String name, List<Player> players, TournamentType type) {
         return new Tournament(name, players, type);
@@ -36,6 +41,12 @@ public class TournamentService {
 
     /**
      * Creates a tournament with an explicit identifier.
+     *
+     * @param tournamentId stable tournament identifier
+     * @param name tournament name
+     * @param players initial players
+     * @param type tournament format
+     * @return created tournament
      */
     public Tournament createTournament(UUID tournamentId, String name, List<Player> players, TournamentType type) {
         return new Tournament(tournamentId, name, players, type);

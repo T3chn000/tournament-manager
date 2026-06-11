@@ -30,13 +30,7 @@ public class PlayerSelectionDialogController {
     private Stage dialogStage;
     private boolean confirmed;
     private int minimumSelectionCount = 1;
-    /**
-     * Player IDs hidden from selection, usually because they are already in the tournament.
-     */
     private Set<UUID> excludedPlayerIds = Set.of();
-    /**
-     * Local copy of the player base used to rebuild available selections.
-     */
     private final List<Player> availablePlayers = new ArrayList<>();
 
     /**
@@ -48,6 +42,11 @@ public class PlayerSelectionDialogController {
         configurePlayerList(selectedPlayersListView);
     }
 
+    /**
+     * Sets the stage owned by this dialog controller.
+     *
+     * @param dialogStage dialog stage to close after user action
+     */
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
     }
@@ -76,12 +75,19 @@ public class PlayerSelectionDialogController {
         refreshAvailablePlayers();
     }
 
+    /**
+     * Indicates whether the user accepted the dialog selection.
+     *
+     * @return {@code true} when the user confirmed selected players
+     */
     public boolean isConfirmed() {
         return confirmed;
     }
 
     /**
      * Returns existing players selected by the user.
+     *
+     * @return selected existing players
      */
     public List<Player> getSelectedPlayers() {
         return List.copyOf(selectedPlayersListView.getItems());
@@ -89,6 +95,8 @@ public class PlayerSelectionDialogController {
 
     /**
      * Returns new player names entered by the user.
+     *
+     * @return names that should be created as new players
      */
     public List<String> getNewPlayerNames() {
         return List.copyOf(newPlayersListView.getItems());

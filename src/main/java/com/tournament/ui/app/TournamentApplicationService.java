@@ -36,25 +36,24 @@ public class TournamentApplicationService {
     private final RankingCalculator rankingCalculator;
     private final TournamentRepository repository;
     private final PlayerDirectoryRepository playerDirectoryRepository;
-    /**
-     * Tournaments loaded or created during the current application session.
-     */
     private final List<Tournament> tournaments = new ArrayList<>();
     private PlayerDirectory playerDirectory;
 
+    /**
+     * Creates the service with the default domain and persistence collaborators.
+     */
     public TournamentApplicationService() {
         this(new TournamentService(), new RankingCalculator(), new TournamentRepository(), new PlayerDirectoryRepository(), new PlayerDirectory());
     }
 
     /**
-     * Creates the service with custom collaborators, mainly for tests.
-     */
-    public TournamentApplicationService(TournamentService tournamentService, RankingCalculator rankingCalculator, TournamentRepository repository) {
-        this(tournamentService, rankingCalculator, repository, new PlayerDirectoryRepository(), new PlayerDirectory());
-    }
-
-    /**
-     * Creates the service with all persistence and domain collaborators supplied.
+     * Creates the service with all domain and persistence collaborators supplied.
+     *
+     * @param tournamentService domain tournament service
+     * @param rankingCalculator ranking calculator
+     * @param repository tournament repository
+     * @param playerDirectoryRepository player directory repository
+     * @param playerDirectory initial player directory
      */
     public TournamentApplicationService(
             TournamentService tournamentService,
@@ -104,6 +103,8 @@ public class TournamentApplicationService {
 
     /**
      * Returns summary rows for the tournament list.
+     *
+     * @return tournament summaries in the current session
      */
     public List<TournamentSummary> getTournaments() {
         return tournaments.stream()
@@ -113,6 +114,8 @@ public class TournamentApplicationService {
 
     /**
      * Returns sorted player rows for the global player list.
+     *
+     * @return player rows sorted by name
      */
     public List<PlayerRow> getPlayers() {
         return getPlayerBase().stream()
@@ -123,6 +126,8 @@ public class TournamentApplicationService {
 
     /**
      * Returns the sorted player directory as domain objects.
+     *
+     * @return players sorted by name
      */
     public List<Player> getPlayerBase() {
         return playerDirectory.getPlayers().stream()
@@ -134,6 +139,7 @@ public class TournamentApplicationService {
      * Returns all details needed to render a tournament.
      *
      * @param tournament tournament managed by this service
+     * @return full tournament details
      */
     public TournamentDetails getDetails(Tournament tournament) {
         return toDetails(requireTournament(tournament));
@@ -141,6 +147,9 @@ public class TournamentApplicationService {
 
     /**
      * Creates and persists a player in the global player directory.
+     *
+     * @param name player display name
+     * @return created player
      */
     public Player createPlayer(String name) {
         try {
@@ -155,6 +164,10 @@ public class TournamentApplicationService {
 
     /**
      * Renames a player in the global player directory.
+     *
+     * @param player player to rename
+     * @param newName new display name
+     * @return renamed player
      */
     public Player renamePlayer(Player player, String newName) {
         if (player == null) {
@@ -171,6 +184,11 @@ public class TournamentApplicationService {
 
     /**
      * Creates a tournament from already selected players.
+     *
+     * @param name tournament name
+     * @param type tournament format
+     * @param players selected players
+     * @return created tournament
      */
     public Tournament createTournamentWithPlayers(String name, TournamentType type, List<Player> players) {
         try {
@@ -192,6 +210,8 @@ public class TournamentApplicationService {
 
     /**
      * Deletes a tournament and removes its saved file.
+     *
+     * @param tournament tournament to delete
      */
     public void deleteTournament(Tournament tournament) {
         requireTournament(tournament);
@@ -205,6 +225,9 @@ public class TournamentApplicationService {
 
     /**
      * Adds existing players to a tournament before it starts.
+     *
+     * @param tournament target tournament
+     * @param players players to add
      */
     public void addPlayers(Tournament tournament, List<Player> players) {
         tournament = requireTournament(tournament);
@@ -225,6 +248,8 @@ public class TournamentApplicationService {
 
     /**
      * Starts a tournament.
+     *
+     * @param tournament tournament to start
      */
     public void startTournament(Tournament tournament) {
         tournament = requireTournament(tournament);
@@ -237,6 +262,9 @@ public class TournamentApplicationService {
 
     /**
      * Generates the next round and converts it to a view model.
+     *
+     * @param tournament tournament to advance
+     * @return generated round view
      */
     public RoundView generateNextRound(Tournament tournament) {
         tournament = requireTournament(tournament);
@@ -249,6 +277,8 @@ public class TournamentApplicationService {
 
     /**
      * Simulates the current round of a started tournament.
+     *
+     * @param tournament tournament whose current round should be simulated
      */
     public void simulateCurrentRound(Tournament tournament) {
         tournament = requireTournament(tournament);
@@ -267,6 +297,8 @@ public class TournamentApplicationService {
 
     /**
      * Simulates rounds until the tournament finishes.
+     *
+     * @param tournament tournament to simulate
      */
     public void simulateTournament(Tournament tournament) {
         tournament = requireTournament(tournament);
@@ -291,8 +323,22 @@ public class TournamentApplicationService {
 
     /**
      * Updates one match score and resolves knockout draws when required.
+     *
+     * @param tournament tournament containing the match
+     * @param roundNumber one-based round number
+     * @param matchIndex zero-based match index inside the round
+     * @param player1Points points for the first player
+     * @param player2Points points for the second player
+     * @param tieBreakWinnerIndex one-based winner index for knockout draws, or {@code null}
      */
-    public void updateMatchScore(Tournament tournament, int roundNumber, int matchIndex, int player1Points, int player2Points, Integer tieBreakWinnerIndex) {
+    public void updateMatchScore(
+            Tournament tournament,
+            int roundNumber,
+            int matchIndex,
+            int player1Points,
+            int player2Points,
+            Integer tieBreakWinnerIndex
+    ) {
         tournament = requireTournament(tournament);
         Round round = findRound(tournament, roundNumber);
         Match match = findMatch(round, matchIndex);

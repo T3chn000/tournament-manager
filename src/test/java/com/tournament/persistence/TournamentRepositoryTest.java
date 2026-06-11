@@ -25,8 +25,7 @@ class TournamentRepositoryTest {
     void shouldSaveTournamentWithoutDerivedResult() throws IOException {
         Player alice = new Player("Alice");
         Player bob = new Player("Bob");
-        Match match = new Match(alice, bob, 2, 2);
-        match.resolveDraw(alice);
+        Match match = new Match(alice, bob, 2, 1);
         Tournament tournament = new Tournament("Cup", List.of(alice, bob), TournamentType.KNOCKOUT);
         tournament.start();
         tournament.addRound(new Round(1, List.of(match)));
@@ -59,5 +58,25 @@ class TournamentRepositoryTest {
         assertEquals(TournamentState.STARTED, loaded.getState());
         assertEquals(MatchResult.PLAYER1_WIN, loadedMatch.getResult());
         assertEquals(alice, loadedMatch.getWinner());
+    }
+
+    @Test
+    void shouldLoadResolvedDrawAndKeepTieBreakWinner() throws IOException {
+        Player alice = new Player("Alice");
+        Player bob = new Player("Bob");
+        Match match = new Match(alice, bob, 2, 2);
+        match.resolveDraw(bob);
+        Tournament tournament = new Tournament("Cup", List.of(alice, bob), TournamentType.KNOCKOUT);
+        tournament.start();
+        tournament.addRound(new Round(1, List.of(match)));
+        TournamentRepository repository = new TournamentRepository(tempDir);
+
+        repository.save(tournament);
+        Tournament loaded = repository.load().getFirst();
+        Match loadedMatch = loaded.getRounds().getFirst().getMatches().getFirst();
+
+        assertEquals(MatchResult.DRAW, loadedMatch.getResult());
+        assertEquals(bob, loadedMatch.getTieBreakWinner());
+        assertEquals(bob, loadedMatch.getWinner());
     }
 }

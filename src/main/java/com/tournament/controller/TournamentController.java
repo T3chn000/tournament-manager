@@ -13,22 +13,9 @@ import java.util.*;
  * useful for quick manual testing from the command line.</p>
  */
 public class TournamentController {
-
-    /**
-     * Shared scanner used for all console input.
-     */
     private final Scanner scanner = new Scanner(System.in);
-    /**
-     * Domain service used by the console workflow.
-     */
     private final TournamentService service = new TournamentService();
-    /**
-     * Repository used to save and load tournaments from disk.
-     */
     private final TournamentRepository repository = new TournamentRepository();
-    /**
-     * In-memory list of tournaments currently available in the console session.
-     */
     private final List<Tournament> tournaments = new ArrayList<>();
 
     /**

@@ -28,12 +28,19 @@ public class CreateTournamentDialogController {
         tournamentTypeComboBox.getSelectionModel().select(TournamentType.SWISS);
     }
 
+    /**
+     * Sets the stage owned by this dialog controller.
+     *
+     * @param dialogStage dialog stage to close after user action
+     */
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
     }
 
     /**
      * Indicates whether the user accepted the dialog.
+     *
+     * @return {@code true} when the user confirmed tournament creation
      */
     public boolean isConfirmed() {
         return confirmed;
@@ -41,13 +48,17 @@ public class CreateTournamentDialogController {
 
     /**
      * Returns the entered tournament name.
+     *
+     * @return tournament name from the text field
      */
     public String getTournamentName() {
         return tournamentNameField.getText();
     }
 
     /**
-     * Returns the selected tournament type.
+     * Returns the selected tournament format.
+     *
+     * @return selected tournament type
      */
     public TournamentType getTournamentType() {
         return tournamentTypeComboBox.getValue();

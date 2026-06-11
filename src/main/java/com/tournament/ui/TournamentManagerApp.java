@@ -16,6 +16,12 @@ import java.util.Objects;
 public class TournamentManagerApp extends Application {
     private static final String APP_ICON_PATH = "/images/app-icon.png";
 
+    /**
+     * Starts the JavaFX application window.
+     *
+     * @param stage primary stage supplied by JavaFX
+     * @throws IOException when the main FXML layout cannot be loaded
+     */
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader loader = new FXMLLoader(TournamentManagerApp.class.getResource("/fxml/MainLayout.fxml"));
@@ -64,6 +70,11 @@ public class TournamentManagerApp extends Application {
         ));
     }
 
+    /**
+     * Launches the desktop JavaFX application.
+     *
+     * @param args command-line arguments forwarded to JavaFX
+     */
     public static void main(String[] args) {
         launch(args);
     }

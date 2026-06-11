@@ -18,6 +18,11 @@ public enum MenuOption {
         this.label = label;
     }
 
+    /**
+     * Returns text displayed in the console menu.
+     *
+     * @return menu label
+     */
     public String getLabel() {
         return label;
     }

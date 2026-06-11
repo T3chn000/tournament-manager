@@ -38,11 +38,22 @@ public record Player(UUID playerId, String name) {
         }
     }
 
+    /**
+     * Returns a display-oriented representation of the player.
+     *
+     * @return player name and identifier
+     */
     @Override
     public String toString() {
         return String.format("Gracz %s (%s)", name, playerId);
     }
 
+    /**
+     * Compares players by their stable identifiers.
+     *
+     * @param o object to compare
+     * @return {@code true} when both players have the same identifier
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -51,6 +62,11 @@ public record Player(UUID playerId, String name) {
         return playerId.equals(player.playerId);
     }
 
+    /**
+     * Returns the hash code derived from the player identifier.
+     *
+     * @return identifier hash code
+     */
     @Override
     public int hashCode() {
         return playerId.hashCode();

@@ -16,10 +16,18 @@ import java.util.*;
 public class KnockoutPairingStrategy implements PairingStrategy {
     private final Random random;
 
+    /**
+     * Creates a strategy with a default random source.
+     */
     public KnockoutPairingStrategy() {
         this(new Random());
     }
 
+    /**
+     * Creates a strategy with an injectable random source.
+     *
+     * @param random random source used to shuffle the first round
+     */
     public KnockoutPairingStrategy(Random random) {
         this.random = random;
     }

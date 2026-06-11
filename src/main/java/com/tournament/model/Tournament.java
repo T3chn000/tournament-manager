@@ -1,9 +1,5 @@
 package com.tournament.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tournament.pairing.PairingStrategy;
 
 import java.util.ArrayList;
@@ -16,22 +12,17 @@ import java.util.UUID;
  * <p>The tournament delegates pairing generation to its {@link TournamentType}
  * and stores generated rounds in order.</p>
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Tournament {
-
     private final UUID tournamentId;
     private final String name;
     private final List<Player> players;
-    /**
-     * Mutable round history kept private so rounds are appended only through domain methods.
-     */
     private final List<Round> rounds = new ArrayList<>();
     private final TournamentType type;
 
     private TournamentState state = TournamentState.CREATED;
 
     /**
-     * Creates a tournament from persisted data.
+     * Creates a tournament from stored data.
      *
      * @param tournamentId stable tournament identifier
      * @param name display name
@@ -40,14 +31,13 @@ public class Tournament {
      * @param type tournament format
      * @param state current lifecycle state
      */
-    @JsonCreator
     public Tournament(
-            @JsonProperty("tournamentId") UUID tournamentId,
-            @JsonProperty("name") String name,
-            @JsonProperty("players") List<Player> players,
-            @JsonProperty("rounds") List<Round> rounds,
-            @JsonProperty("type") TournamentType type,
-            @JsonProperty("state") TournamentState state) {
+            UUID tournamentId,
+            String name,
+            List<Player> players,
+            List<Round> rounds,
+            TournamentType type,
+            TournamentState state) {
         validateTournament(tournamentId, name, players, type);
 
         this.tournamentId = tournamentId;
@@ -98,14 +88,29 @@ public class Tournament {
         this.type = type;
     }
 
+    /**
+     * Returns the stable tournament identifier.
+     *
+     * @return tournament identifier
+     */
     public UUID getTournamentId() {
         return tournamentId;
     }
 
+    /**
+     * Returns the tournament display name.
+     *
+     * @return tournament name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Returns registered players.
+     *
+     * @return immutable player list
+     */
     public List<Player> getPlayers() {
         return List.copyOf(players);
     }
@@ -129,6 +134,11 @@ public class Tournament {
         players.add(player);
     }
 
+    /**
+     * Returns generated rounds.
+     *
+     * @return immutable round list
+     */
     public List<Round> getRounds() {
         return List.copyOf(rounds);
     }
@@ -138,11 +148,15 @@ public class Tournament {
      *
      * @return round count
      */
-    @JsonIgnore
     public int getRoundCount() {
         return rounds.size();
     }
 
+    /**
+     * Returns the tournament format.
+     *
+     * @return tournament type
+     */
     public TournamentType getType() {
         return type;
     }
@@ -152,7 +166,6 @@ public class Tournament {
      *
      * @return current round, or {@code null} when no round has been generated
      */
-    @JsonIgnore
     public Round getCurrentRound() {
         if (rounds.isEmpty()) {
             return null;
@@ -176,11 +189,20 @@ public class Tournament {
         rounds.add(round);
     }
 
-    @JsonIgnore
+    /**
+     * Checks whether the tournament has moved past creation.
+     *
+     * @return {@code true} when the tournament is started or finished
+     */
     public boolean isStarted() {
         return state != TournamentState.CREATED;
     }
 
+    /**
+     * Returns the current lifecycle state.
+     *
+     * @return tournament state
+     */
     public TournamentState getState() {
         return state;
     }
@@ -225,6 +247,11 @@ public class Tournament {
         return round;
     }
 
+    /**
+     * Returns a compact textual representation of the tournament.
+     *
+     * @return tournament summary
+     */
     @Override
     public String toString() {
         return String.format("%s (%s) [%s, %s, players: %d, rounds: %d]", 
