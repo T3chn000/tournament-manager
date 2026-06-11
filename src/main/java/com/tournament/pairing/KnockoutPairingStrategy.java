@@ -7,6 +7,12 @@ import com.tournament.model.Round;
 
 import java.util.*;
 
+/**
+ * Pairing strategy for single-elimination knockout tournaments.
+ *
+ * <p>The first round is shuffled, BYE matches are added when needed, and later
+ * rounds are generated from the winners of the previous round.</p>
+ */
 public class KnockoutPairingStrategy implements PairingStrategy {
     private final Random random;
 
@@ -18,6 +24,12 @@ public class KnockoutPairingStrategy implements PairingStrategy {
         this.random = random;
     }
 
+    /**
+     * Generates the next knockout round.
+     *
+     * @param tournament tournament to pair
+     * @return next round
+     */
     @Override
     public Round generateNextRound(Tournament tournament) {
 
@@ -61,27 +73,9 @@ public class KnockoutPairingStrategy implements PairingStrategy {
         return new Round(tournament.getRoundCount() + 1, matches);
     }
 
-    /*  Stara wersja bez wstępnej rundy.
-    @Override
-    public Round generateNextRound(Tournament tournament) {
-        if (tournament == null)
-            throw new IllegalArgumentException("Tournament cannot be null");
-
-        List<Player> playersForRound = getPlayersForNextRound(tournament);
-
-        if (playersForRound.isEmpty())
-            throw new IllegalStateException("Not enough players to generate next round");
-
-        if (playersForRound.size() == 1)
-            throw new IllegalStateException("Tournament is already finished");
-
-        int nextRoundNumber = tournament.getRoundCount() + 1;
-        List<Match> matches = createMatches(playersForRound);
-
-        return new Round(nextRoundNumber, matches);
-    }
-    */
-
+    /**
+     * Returns initial players for the first round or winners for later rounds.
+     */
     private List<Player> getPlayersForNextRound(Tournament tournament) {
         Round lastRound = tournament.getCurrentRound();
 
@@ -94,6 +88,12 @@ public class KnockoutPairingStrategy implements PairingStrategy {
         return getWinnersFromRound(lastRound);
     }
 
+    /**
+     * Extracts winners from a completed knockout round.
+     *
+     * <p>A draw without a tie-break winner is rejected because knockout rounds
+     * cannot advance unresolved matches.</p>
+     */
     private List<Player> getWinnersFromRound(Round round) {
         List<Player> winners = new ArrayList<>();
 
@@ -106,24 +106,10 @@ public class KnockoutPairingStrategy implements PairingStrategy {
 
         return winners;
     }
-
-    private List<Match> createMatches(List<Player> players) {
-        List<Match> matches = new ArrayList<>();
-
-        for (int i = 0; i < players.size(); i += 2) {
-            Player player1 = players.get(i);
-
-            if (i + 1 < players.size()) {
-                Player player2 = players.get(i + 1);
-                matches.add(new Match(player1, player2));
-            } else {
-                Match byeMatch = new Match(player1, Player.BYE);
-                matches.add(byeMatch);
-            }
-        }
-
-        return matches;
-    }
+    
+    /**
+     * Guards against duplicate players before the first knockout bracket is built.
+     */
     private void validateNoDuplicates(List<Player> players) {
         Set<Player> set = new HashSet<>(players);
         if (set.size() != players.size()) {
@@ -131,6 +117,9 @@ public class KnockoutPairingStrategy implements PairingStrategy {
         }
     }
 
+    /**
+     * Finds the bracket size needed to calculate BYE matches.
+     */
     private int getNextPowerOf2(int n) {
         int power = 1;
         while (power < n) {

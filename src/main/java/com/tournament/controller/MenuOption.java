@@ -1,5 +1,8 @@
 package com.tournament.controller;
 
+/**
+ * Menu commands supported by the console controller.
+ */
 public enum MenuOption {
     CREATE("Create tournament"),
     LIST("List tournaments"),
@@ -19,6 +22,12 @@ public enum MenuOption {
         return label;
     }
 
+    /**
+     * Converts a menu index to an option.
+     *
+     * @param i ordinal menu index
+     * @return matching menu option
+     */
     public static MenuOption fromInt(int i) {
         return values()[i];
     }

@@ -13,8 +13,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Calculates ranking rows from played tournament matches.
+ *
+ * <p>The current scoring model gives two points for a win or BYE and one point
+ * for a draw. Tie-break winners still score the match as a draw.</p>
+ */
 public class RankingCalculator {
 
+    /**
+     * Builds a ranking table for all tournament players.
+     *
+     * @param tournament tournament to rank
+     * @return sorted ranking rows
+     */
     public List<RankingRow> calculate(Tournament tournament) {
         if (tournament == null) {
             throw new IllegalArgumentException("Tournament cannot be null");
@@ -41,6 +53,9 @@ public class RankingCalculator {
         return List.copyOf(ranking);
     }
 
+    /**
+     * Converts sorted internal stats into table rows with one-based places.
+     */
     private static List<RankingRow> getRankingRows(List<Stats> sortedStats) {
         List<RankingRow> ranking = new ArrayList<>();
         for (int i = 0; i < sortedStats.size(); i++) {
@@ -60,6 +75,9 @@ public class RankingCalculator {
         return ranking;
     }
 
+    /**
+     * Applies one played match to both players' accumulated statistics.
+     */
     private void applyMatch(Map<Player, Stats> statsByPlayer, Match match) {
         if (!match.isPlayed()) {
             return;
@@ -101,56 +119,92 @@ public class RankingCalculator {
         private int playedMatches;
         private int byeCount;
 
+        /**
+         * Creates an empty accumulator for one player.
+         */
         private Stats(Player player) {
             this.player = player;
         }
 
+        /**
+         * Records a regular win.
+         */
         private void addWin() {
             points += 2;
             wins++;
             playedMatches++;
         }
 
+        /**
+         * Records a draw as one ranking point for the player.
+         */
         private void addDraw() {
             points++;
             draws++;
             playedMatches++;
         }
 
+        /**
+         * Records a regular loss.
+         */
         private void addLoss() {
             losses++;
             playedMatches++;
         }
 
+        /**
+         * Records an automatic BYE win without increasing played match count.
+         */
         private void addByeWin() {
             points += 2;
             byeCount++;
         }
 
+        /**
+         * Returns the player represented by this accumulator.
+         */
         private Player player() {
             return player;
         }
 
+        /**
+         * Returns accumulated ranking points.
+         */
         private int points() {
             return points;
         }
 
+        /**
+         * Returns accumulated wins.
+         */
         private int wins() {
             return wins;
         }
 
+        /**
+         * Returns accumulated draws.
+         */
         private int draws() {
             return draws;
         }
 
+        /**
+         * Returns accumulated losses.
+         */
         private int losses() {
             return losses;
         }
 
+        /**
+         * Returns the number of played non-BYE matches.
+         */
         private int playedMatches() {
             return playedMatches;
         }
 
+        /**
+         * Returns the number of automatic BYE wins.
+         */
         private int byeCount() {
             return byeCount;
         }

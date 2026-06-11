@@ -2,11 +2,26 @@ package com.tournament.model;
 
 import java.util.UUID;
 
+/**
+ * A tournament participant identified by a stable UUID.
+ *
+ * <p>Players are equal when their identifiers are equal, so a player name can
+ * change without breaking tournament references.</p>
+ *
+ * @param playerId unique player identifier
+ * @param name display name shown in the UI and rankings
+ */
 public record Player(UUID playerId, String name) {
-//    private static int lastPlayerId;
-//    private final int playerId;
-//    Static działa thlko w jednej instancji aplikacji więc przy wielokrotnym włączaniu ID mogłyby się dublować więc zrezygnowano z tego rozwiązania.
+    /**
+     * Synthetic player used to represent a free win.
+     */
     public static final Player BYE = new Player(UUID.fromString("00000000-0000-0000-0000-000000000000"), "BYE");
+
+    /**
+     * Creates a player with a generated identifier.
+     *
+     * @param name display name of the player
+     */
     public Player(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Name cannot be empty");

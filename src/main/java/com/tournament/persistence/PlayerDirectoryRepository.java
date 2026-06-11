@@ -11,6 +11,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+/**
+ * JSON repository for the global player directory.
+ *
+ * <p>The repository stores players in a small versioned wrapper file and writes
+ * updates through a temporary file before replacing the original.</p>
+ */
 public class PlayerDirectoryRepository {
     private static final int DATA_VERSION = 1;
     private static final String DATA_FILE = "data/players/players.json";
@@ -22,6 +28,11 @@ public class PlayerDirectoryRepository {
         this(Paths.get(DATA_FILE));
     }
 
+    /**
+     * Creates a repository that stores data at the provided path.
+     *
+     * @param filePath JSON file path
+     */
     public PlayerDirectoryRepository(Path filePath) {
         if (filePath == null) {
             throw new IllegalArgumentException("Player directory file path cannot be null");
@@ -32,6 +43,12 @@ public class PlayerDirectoryRepository {
         ensureDirectoryExists();
     }
 
+    /**
+     * Loads the player directory.
+     *
+     * @return loaded directory, or an empty directory when the file does not exist
+     * @throws IOException when the JSON file cannot be read
+     */
     public PlayerDirectory load() throws IOException {
         ensureDirectoryExists();
         if (!Files.exists(filePath)) {
@@ -42,6 +59,12 @@ public class PlayerDirectoryRepository {
         return new PlayerDirectory(data.players());
     }
 
+    /**
+     * Saves the player directory to disk.
+     *
+     * @param directory directory to save
+     * @throws IOException when the file cannot be written
+     */
     public void save(PlayerDirectory directory) throws IOException {
         if (directory == null) {
             throw new IllegalArgumentException("Player directory cannot be null");
@@ -58,6 +81,9 @@ public class PlayerDirectoryRepository {
         }
     }
 
+    /**
+     * Creates the parent directory for the player directory file when needed.
+     */
     private void ensureDirectoryExists() {
         Path parent = filePath.getParent();
         if (parent == null) {
@@ -71,6 +97,9 @@ public class PlayerDirectoryRepository {
         }
     }
 
+    /**
+     * Replaces the saved player file, using an atomic move when available.
+     */
     private void moveReplacingExisting(Path source, Path target) throws IOException {
         try {
             Files.move(source, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);

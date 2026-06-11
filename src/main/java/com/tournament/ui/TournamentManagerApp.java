@@ -10,6 +10,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.Objects;
 
+/**
+ * JavaFX entry point for the desktop tournament manager.
+ */
 public class TournamentManagerApp extends Application {
     private static final String APP_ICON_PATH = "/images/app-icon.png";
 
@@ -27,11 +30,21 @@ public class TournamentManagerApp extends Application {
         stage.show();
     }
 
+    /**
+     * Applies the shared application icon to a stage.
+     *
+     * @param stage stage to decorate
+     */
     public static void applyApplicationIcon(Stage stage) {
         Objects.requireNonNull(stage, "stage");
         stage.getIcons().add(loadApplicationIcon());
     }
 
+    /**
+     * Applies the shared application icon to a JavaFX dialog once it is shown.
+     *
+     * @param dialog dialog to decorate
+     */
     public static void applyApplicationIcon(Dialog<?> dialog) {
         Objects.requireNonNull(dialog, "dialog");
         dialog.setOnShown(event -> {
@@ -41,6 +54,9 @@ public class TournamentManagerApp extends Application {
         });
     }
 
+    /**
+     * Loads the application icon from resources and fails fast when the asset is missing.
+     */
     private static Image loadApplicationIcon() {
         return new Image(Objects.requireNonNull(
                 TournamentManagerApp.class.getResourceAsStream(APP_ICON_PATH),
