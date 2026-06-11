@@ -12,7 +12,6 @@ import com.tournament.persistence.TournamentRepository;
 import com.tournament.service.TournamentService;
 import com.tournament.ui.viewmodel.MatchView;
 import com.tournament.ui.viewmodel.PlayerRow;
-import com.tournament.ui.viewmodel.RankingRow;
 import com.tournament.ui.viewmodel.RoundView;
 import com.tournament.ui.viewmodel.TournamentDetails;
 import com.tournament.ui.viewmodel.TournamentSummary;
@@ -68,10 +67,6 @@ public class TournamentApplicationService {
         this.repository = repository;
         this.playerDirectoryRepository = playerDirectoryRepository;
         this.playerDirectory = playerDirectory;
-    }
-
-    public void loadSavedTournaments() {
-        loadSavedData();
     }
 
     /**
@@ -175,25 +170,6 @@ public class TournamentApplicationService {
     }
 
     /**
-     * Creates a tournament from player names, reusing existing directory players when possible.
-     */
-    public Tournament createTournament(String name, TournamentType type, List<String> playerNames) {
-        try {
-            validateTournamentInput(name, type, playerNames);
-            List<Player> players = playerNames.stream()
-                    .map(String::trim)
-                    .map(playerDirectory::resolveOrCreate)
-                    .toList();
-            Tournament tournament = tournamentService.createTournament(name.trim(), players, type);
-            tournaments.add(tournament);
-            savePlayerDirectory();
-            return tournament;
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            throw new UiActionException(e.getMessage());
-        }
-    }
-
-    /**
      * Creates a tournament from already selected players.
      */
     public Tournament createTournamentWithPlayers(String name, TournamentType type, List<Player> players) {
@@ -225,28 +201,6 @@ public class TournamentApplicationService {
         } catch (IOException e) {
             throw new UiActionException("Failed to delete tournament file: " + e.getMessage());
         }
-    }
-
-    /**
-     * Adds a player by name to a tournament before it starts.
-     */
-    public void addPlayer(Tournament tournament, String playerName) {
-        tournament = requireTournament(tournament);
-        try {
-            validatePlayerName(tournament, playerName);
-            Player player = playerDirectory.resolveOrCreate(playerName.trim());
-            tournamentService.addPlayer(tournament, player);
-            savePlayerDirectory();
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            throw new UiActionException(e.getMessage());
-        }
-    }
-
-    /**
-     * Adds one existing player to a tournament before it starts.
-     */
-    public void addPlayer(Tournament tournament, Player player) {
-        addPlayers(tournament, List.of(player));
     }
 
     /**
@@ -368,39 +322,6 @@ public class TournamentApplicationService {
     }
 
     /**
-     * Calculates ranking rows for a tournament.
-     */
-    public List<RankingRow> getRanking(Tournament tournament) {
-        return rankingCalculator.calculate(requireTournament(tournament));
-    }
-
-    /**
-     * Validates the older tournament creation flow that receives player names.
-     */
-    private void validateTournamentInput(String name, TournamentType type, List<String> playerNames) {
-        if (name == null || name.isBlank()) {
-            throw new UiActionException("Tournament name cannot be empty");
-        }
-        if (type == null) {
-            throw new UiActionException("Tournament type cannot be null");
-        }
-        if (playerNames == null || playerNames.size() < 2) {
-            throw new UiActionException("Need at least 2 players");
-        }
-
-        Set<String> normalizedNames = new LinkedHashSet<>();
-        for (String playerName : playerNames) {
-            if (playerName == null || playerName.isBlank()) {
-                throw new UiActionException("Player name cannot be empty");
-            }
-            String normalized = playerName.trim().toLowerCase(Locale.ROOT);
-            if (!normalizedNames.add(normalized)) {
-                throw new UiActionException("Player names must be unique");
-            }
-        }
-    }
-
-    /**
      * Validates tournament creation from selected player domain objects.
      */
     private void validateTournamentPlayersInput(String name, TournamentType type, List<Player> players) {
@@ -427,23 +348,6 @@ public class TournamentApplicationService {
             if (!normalizedNames.add(normalizedName)) {
                 throw new UiActionException("Player names must be unique");
             }
-        }
-    }
-
-    /**
-     * Validates a new player name against players already registered in a tournament.
-     */
-    private void validatePlayerName(Tournament tournament, String playerName) {
-        if (playerName == null || playerName.isBlank()) {
-            throw new UiActionException("Player name cannot be empty");
-        }
-        String normalizedName = playerName.trim().toLowerCase(Locale.ROOT);
-        boolean duplicate = tournament.getPlayers().stream()
-                .map(Player::name)
-                .map(name -> name.toLowerCase(Locale.ROOT))
-                .anyMatch(normalizedName::equals);
-        if (duplicate) {
-            throw new UiActionException("Player names must be unique");
         }
     }
 

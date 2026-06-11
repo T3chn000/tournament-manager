@@ -14,11 +14,10 @@ import java.nio.file.StandardCopyOption;
 /**
  * JSON repository for the global player directory.
  *
- * <p>The repository stores players in a small versioned wrapper file and writes
+ * <p>The repository stores players in a small wrapper file and writes
  * updates through a temporary file before replacing the original.</p>
  */
 public class PlayerDirectoryRepository {
-    private static final int DATA_VERSION = 1;
     private static final String DATA_FILE = "data/players/players.json";
 
     private final ObjectMapper objectMapper;
@@ -74,7 +73,7 @@ public class PlayerDirectoryRepository {
         Path tempPath = filePath.resolveSibling(filePath.getFileName() + ".tmp");
 
         try {
-            objectMapper.writeValue(tempPath.toFile(), new PlayerDirectoryData(DATA_VERSION, directory.getPlayers()));
+            objectMapper.writeValue(tempPath.toFile(), new PlayerDirectoryData(directory.getPlayers()));
             moveReplacingExisting(tempPath, filePath);
         } finally {
             Files.deleteIfExists(tempPath);

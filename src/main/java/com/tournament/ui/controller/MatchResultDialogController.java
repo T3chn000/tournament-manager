@@ -16,7 +16,6 @@ import javafx.stage.Stage;
  * <p>For knockout draws the dialog also asks for a tie-break winner.</p>
  */
 public class MatchResultDialogController {
-    @FXML private VBox dialogRoot;
     @FXML private Label player1Label;
     @FXML private Label player2Label;
     @FXML private Spinner<Integer> player1PointsSpinner;

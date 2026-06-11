@@ -8,10 +8,11 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="dialogRoot" prefHeight="220.0" prefWidth="320.0" spacing="12.0" styleClass="dialog-root" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tournament.ui.controller.MatchResultDialogController">
+<VBox prefHeight="300.0" prefWidth="320.0" spacing="12.0" styleClass="dialog-root" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tournament.ui.controller.MatchResultDialogController">
     <children>
         <Label styleClass="dialog-title" text="Match result" />
 
@@ -41,6 +42,8 @@
         </VBox>
 
         <Label fx:id="errorLabel" styleClass="error-text" />
+
+        <Region VBox.vgrow="ALWAYS" />
 
         <HBox alignment="CENTER_RIGHT" spacing="8.0">
             <children>

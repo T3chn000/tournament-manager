@@ -74,7 +74,7 @@ public class TournamentRepository {
         Path tempPath = dataDirectory.resolve(path.getFileName() + ".tmp");
 
         try {
-            objectMapper.writeValue(tempPath.toFile(), tournament);
+            objectMapper.writeValue(tempPath.toFile(), TournamentData.fromDomain(tournament));
             moveReplacingExisting(tempPath, path);
         } finally {
             Files.deleteIfExists(tempPath);
@@ -100,7 +100,8 @@ public class TournamentRepository {
                 
                 for (Path path : files) {
                     try {
-                        tournaments.add(objectMapper.readValue(path.toFile(), Tournament.class));
+                        TournamentData data = objectMapper.readValue(path.toFile(), TournamentData.class);
+                        tournaments.add(data.toDomain());
                     } catch (IOException e) {
                         System.err.println("Error loading tournament from " + path + ": " + e.getMessage());
                     }
