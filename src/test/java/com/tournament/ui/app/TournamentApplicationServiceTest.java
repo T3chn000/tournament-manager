@@ -8,6 +8,7 @@ import com.tournament.persistence.PlayerDirectoryRepository;
 import com.tournament.persistence.TournamentRepository;
 import com.tournament.service.TournamentService;
 import com.tournament.ui.viewmodel.PlayerRow;
+import com.tournament.ui.viewmodel.TournamentDetails;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -126,6 +127,48 @@ class TournamentApplicationServiceTest {
 
         assertEquals("Player names must be unique", exception.getMessage());
         assertEquals(List.of(alice, bob), tournament.getPlayers());
+    }
+
+    @Test
+    void shouldShowRenamedPlayerInTournamentDetails() {
+        TournamentApplicationService service = createService();
+        Player alice = service.createPlayer("Alice");
+        Player bob = service.createPlayer("Bob");
+        Tournament tournament = service.createTournamentWithPlayers("Cup", TournamentType.SWISS, List.of(alice, bob));
+
+        service.startTournament(tournament);
+        service.generateNextRound(tournament);
+        service.renamePlayer(alice, "Alicia");
+
+        TournamentDetails details = service.getDetails(tournament);
+
+        assertTrue(details.players().stream().anyMatch(player -> player.name().equals("Alicia")));
+        assertTrue(details.rounds().getFirst().matches().stream()
+                .anyMatch(match -> match.player1Name().equals("Alicia") || match.player2Name().equals("Alicia")));
+    }
+
+    @Test
+    void shouldPersistCurrentPlayerNameInTournamentJsonAfterRename() throws IOException {
+        TournamentRepository tournamentRepository = new TournamentRepository(tempDir.resolve("tournaments"));
+        TournamentApplicationService service = createService(
+                tournamentRepository,
+                new PlayerDirectoryRepository(tempDir.resolve("players").resolve("players.json"))
+        );
+        Player alice = service.createPlayer("Alice");
+        Player bob = service.createPlayer("Bob");
+        Tournament tournament = service.createTournamentWithPlayers("Cup", TournamentType.SWISS, List.of(alice, bob));
+
+        service.startTournament(tournament);
+        service.generateNextRound(tournament);
+        service.saveTournament(tournament);
+        service.renamePlayer(alice, "Alicia");
+
+        Tournament loaded = tournamentRepository.load().getFirst();
+
+        assertTrue(loaded.getPlayers().stream().anyMatch(player -> player.name().equals("Alicia")));
+        assertTrue(loaded.getRounds().getFirst().getMatches().stream()
+                .anyMatch(match -> match.getPlayer1().name().equals("Alicia") || match.getPlayer2().name().equals("Alicia")));
+        assertFalse(loaded.getPlayers().stream().anyMatch(player -> player.name().equals("Alice")));
     }
 
     private TournamentApplicationService createService() {

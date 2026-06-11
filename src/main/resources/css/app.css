@@ -397,6 +397,11 @@
     -fx-border-color: transparent;
 }
 
+.table-view .column-header .label,
+.table-view .table-cell {
+    -fx-alignment: CENTER;
+}
+
 .table-action-button {
     -fx-min-width: 96px;
     -fx-padding: 5 10;
