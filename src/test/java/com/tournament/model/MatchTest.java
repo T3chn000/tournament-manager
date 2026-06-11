@@ -1,8 +1,5 @@
 package com.tournament.model;
 
-import com.tournament.model.Match;
-import com.tournament.model.MatchResult;
-import com.tournament.model.Player;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

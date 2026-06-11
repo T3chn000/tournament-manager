@@ -4,11 +4,13 @@ import com.tournament.model.Player;
 
 import java.util.List;
 
-record PlayerDirectoryData(int version, List<Player> players) {
+/**
+ * JSON wrapper used to persist the player directory.
+ *
+ * @param players stored players
+ */
+record PlayerDirectoryData(List<Player> players) {
     PlayerDirectoryData {
-        if (players == null) {
-            players = List.of();
-        }
-        players = List.copyOf(players);
+        players = players == null ? List.of() : List.copyOf(players);
     }
 }

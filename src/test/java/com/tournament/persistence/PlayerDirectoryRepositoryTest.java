@@ -50,7 +50,6 @@ class PlayerDirectoryRepositoryTest {
         repository.save(new PlayerDirectory(List.of(alice)));
 
         String json = Files.readString(filePath);
-        assertTrue(json.contains("\"version\" : 1"));
         assertTrue(json.contains("\"players\""));
         assertTrue(json.contains(alice.playerId().toString()));
         assertTrue(json.contains("\"name\" : \"Alice\""));
@@ -62,7 +61,6 @@ class PlayerDirectoryRepositoryTest {
         Path filePath = tempDir.resolve("players.json");
         Files.writeString(filePath, """
                 {
-                  "version": 1,
                   "players": [
                     { "playerId": "%s", "name": "Alice" },
                     { "playerId": "%s", "name": "Renamed Alice" }
@@ -79,7 +77,6 @@ class PlayerDirectoryRepositoryTest {
         Path filePath = tempDir.resolve("players.json");
         Files.writeString(filePath, """
                 {
-                  "version": 1,
                   "players": [
                     { "playerId": "00000000-0000-0000-0000-000000000000", "name": "BYE" }
                   ]

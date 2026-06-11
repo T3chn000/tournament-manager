@@ -12,7 +12,6 @@ import com.tournament.persistence.TournamentRepository;
 import com.tournament.service.TournamentService;
 import com.tournament.ui.viewmodel.MatchView;
 import com.tournament.ui.viewmodel.PlayerRow;
-import com.tournament.ui.viewmodel.RankingRow;
 import com.tournament.ui.viewmodel.RoundView;
 import com.tournament.ui.viewmodel.TournamentDetails;
 import com.tournament.ui.viewmodel.TournamentSummary;
@@ -25,6 +24,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+/**
+ * Application-level facade used by JavaFX controllers.
+ *
+ * <p>It coordinates domain services, repositories, player directory management
+ * and conversion to view models. User-facing validation errors are exposed as
+ * {@link UiActionException}.</p>
+ */
 public class TournamentApplicationService {
     private final TournamentService tournamentService;
     private final RankingCalculator rankingCalculator;
@@ -33,14 +39,22 @@ public class TournamentApplicationService {
     private final List<Tournament> tournaments = new ArrayList<>();
     private PlayerDirectory playerDirectory;
 
+    /**
+     * Creates the service with the default domain and persistence collaborators.
+     */
     public TournamentApplicationService() {
         this(new TournamentService(), new RankingCalculator(), new TournamentRepository(), new PlayerDirectoryRepository(), new PlayerDirectory());
     }
 
-    public TournamentApplicationService(TournamentService tournamentService, RankingCalculator rankingCalculator, TournamentRepository repository) {
-        this(tournamentService, rankingCalculator, repository, new PlayerDirectoryRepository(), new PlayerDirectory());
-    }
-
+    /**
+     * Creates the service with all domain and persistence collaborators supplied.
+     *
+     * @param tournamentService domain tournament service
+     * @param rankingCalculator ranking calculator
+     * @param repository tournament repository
+     * @param playerDirectoryRepository player directory repository
+     * @param playerDirectory initial player directory
+     */
     public TournamentApplicationService(
             TournamentService tournamentService,
             RankingCalculator rankingCalculator,
@@ -54,10 +68,9 @@ public class TournamentApplicationService {
         this.playerDirectory = playerDirectory;
     }
 
-    public void loadSavedTournaments() {
-        loadSavedData();
-    }
-
+    /**
+     * Loads tournaments and the player directory from disk.
+     */
     public void loadSavedData() {
         try {
             List<Tournament> loaded = repository.load();
@@ -74,6 +87,11 @@ public class TournamentApplicationService {
         }
     }
 
+    /**
+     * Saves one tournament through the tournament repository.
+     *
+     * @param tournament tournament managed by this service
+     */
     public void saveTournament(Tournament tournament) {
         tournament = requireTournament(tournament);
         try {
@@ -83,12 +101,22 @@ public class TournamentApplicationService {
         }
     }
 
+    /**
+     * Returns summary rows for the tournament list.
+     *
+     * @return tournament summaries in the current session
+     */
     public List<TournamentSummary> getTournaments() {
         return tournaments.stream()
                 .map(this::toSummary)
                 .toList();
     }
 
+    /**
+     * Returns sorted player rows for the global player list.
+     *
+     * @return player rows sorted by name
+     */
     public List<PlayerRow> getPlayers() {
         return getPlayerBase().stream()
                 .sorted(Comparator.comparing(Player::name, String.CASE_INSENSITIVE_ORDER))
@@ -96,16 +124,33 @@ public class TournamentApplicationService {
                 .toList();
     }
 
+    /**
+     * Returns the sorted player directory as domain objects.
+     *
+     * @return players sorted by name
+     */
     public List<Player> getPlayerBase() {
         return playerDirectory.getPlayers().stream()
                 .sorted(Comparator.comparing(Player::name, String.CASE_INSENSITIVE_ORDER))
                 .toList();
     }
 
+    /**
+     * Returns all details needed to render a tournament.
+     *
+     * @param tournament tournament managed by this service
+     * @return full tournament details
+     */
     public TournamentDetails getDetails(Tournament tournament) {
         return toDetails(requireTournament(tournament));
     }
 
+    /**
+     * Creates and persists a player in the global player directory.
+     *
+     * @param name player display name
+     * @return created player
+     */
     public Player createPlayer(String name) {
         try {
             Player player = new Player(name);
@@ -117,6 +162,13 @@ public class TournamentApplicationService {
         }
     }
 
+    /**
+     * Renames a player in the global player directory.
+     *
+     * @param player player to rename
+     * @param newName new display name
+     * @return renamed player
+     */
     public Player renamePlayer(Player player, String newName) {
         if (player == null) {
             throw new UiActionException("Player cannot be null");
@@ -130,22 +182,14 @@ public class TournamentApplicationService {
         }
     }
 
-    public Tournament createTournament(String name, TournamentType type, List<String> playerNames) {
-        try {
-            validateTournamentInput(name, type, playerNames);
-            List<Player> players = playerNames.stream()
-                    .map(String::trim)
-                    .map(playerDirectory::resolveOrCreate)
-                    .toList();
-            Tournament tournament = tournamentService.createTournament(name.trim(), players, type);
-            tournaments.add(tournament);
-            savePlayerDirectory();
-            return tournament;
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            throw new UiActionException(e.getMessage());
-        }
-    }
-
+    /**
+     * Creates a tournament from already selected players.
+     *
+     * @param name tournament name
+     * @param type tournament format
+     * @param players selected players
+     * @return created tournament
+     */
     public Tournament createTournamentWithPlayers(String name, TournamentType type, List<Player> players) {
         try {
             validateTournamentPlayersInput(name, type, players);
@@ -164,6 +208,11 @@ public class TournamentApplicationService {
         }
     }
 
+    /**
+     * Deletes a tournament and removes its saved file.
+     *
+     * @param tournament tournament to delete
+     */
     public void deleteTournament(Tournament tournament) {
         requireTournament(tournament);
         tournaments.remove(tournament);
@@ -174,22 +223,12 @@ public class TournamentApplicationService {
         }
     }
 
-    public void addPlayer(Tournament tournament, String playerName) {
-        tournament = requireTournament(tournament);
-        try {
-            validatePlayerName(tournament, playerName);
-            Player player = playerDirectory.resolveOrCreate(playerName.trim());
-            tournamentService.addPlayer(tournament, player);
-            savePlayerDirectory();
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            throw new UiActionException(e.getMessage());
-        }
-    }
-
-    public void addPlayer(Tournament tournament, Player player) {
-        addPlayers(tournament, List.of(player));
-    }
-
+    /**
+     * Adds existing players to a tournament before it starts.
+     *
+     * @param tournament target tournament
+     * @param players players to add
+     */
     public void addPlayers(Tournament tournament, List<Player> players) {
         tournament = requireTournament(tournament);
         try {
@@ -207,6 +246,11 @@ public class TournamentApplicationService {
         }
     }
 
+    /**
+     * Starts a tournament.
+     *
+     * @param tournament tournament to start
+     */
     public void startTournament(Tournament tournament) {
         tournament = requireTournament(tournament);
         try {
@@ -216,6 +260,12 @@ public class TournamentApplicationService {
         }
     }
 
+    /**
+     * Generates the next round and converts it to a view model.
+     *
+     * @param tournament tournament to advance
+     * @return generated round view
+     */
     public RoundView generateNextRound(Tournament tournament) {
         tournament = requireTournament(tournament);
         try {
@@ -225,6 +275,11 @@ public class TournamentApplicationService {
         }
     }
 
+    /**
+     * Simulates the current round of a started tournament.
+     *
+     * @param tournament tournament whose current round should be simulated
+     */
     public void simulateCurrentRound(Tournament tournament) {
         tournament = requireTournament(tournament);
         Round currentRound = tournament.getCurrentRound();
@@ -240,6 +295,11 @@ public class TournamentApplicationService {
         }
     }
 
+    /**
+     * Simulates rounds until the tournament finishes.
+     *
+     * @param tournament tournament to simulate
+     */
     public void simulateTournament(Tournament tournament) {
         tournament = requireTournament(tournament);
         if (tournament.getState() == TournamentState.CREATED) {
@@ -261,7 +321,24 @@ public class TournamentApplicationService {
         }
     }
 
-    public void updateMatchScore(Tournament tournament, int roundNumber, int matchIndex, int player1Points, int player2Points, Integer tieBreakWinnerIndex) {
+    /**
+     * Updates one match score and resolves knockout draws when required.
+     *
+     * @param tournament tournament containing the match
+     * @param roundNumber one-based round number
+     * @param matchIndex zero-based match index inside the round
+     * @param player1Points points for the first player
+     * @param player2Points points for the second player
+     * @param tieBreakWinnerIndex one-based winner index for knockout draws, or {@code null}
+     */
+    public void updateMatchScore(
+            Tournament tournament,
+            int roundNumber,
+            int matchIndex,
+            int player1Points,
+            int player2Points,
+            Integer tieBreakWinnerIndex
+    ) {
         tournament = requireTournament(tournament);
         Round round = findRound(tournament, roundNumber);
         Match match = findMatch(round, matchIndex);
@@ -290,33 +367,9 @@ public class TournamentApplicationService {
         }
     }
 
-    public List<RankingRow> getRanking(Tournament tournament) {
-        return rankingCalculator.calculate(requireTournament(tournament));
-    }
-
-    private void validateTournamentInput(String name, TournamentType type, List<String> playerNames) {
-        if (name == null || name.isBlank()) {
-            throw new UiActionException("Tournament name cannot be empty");
-        }
-        if (type == null) {
-            throw new UiActionException("Tournament type cannot be null");
-        }
-        if (playerNames == null || playerNames.size() < 2) {
-            throw new UiActionException("Need at least 2 players");
-        }
-
-        Set<String> normalizedNames = new LinkedHashSet<>();
-        for (String playerName : playerNames) {
-            if (playerName == null || playerName.isBlank()) {
-                throw new UiActionException("Player name cannot be empty");
-            }
-            String normalized = playerName.trim().toLowerCase(Locale.ROOT);
-            if (!normalizedNames.add(normalized)) {
-                throw new UiActionException("Player names must be unique");
-            }
-        }
-    }
-
+    /**
+     * Validates tournament creation from selected player domain objects.
+     */
     private void validateTournamentPlayersInput(String name, TournamentType type, List<Player> players) {
         if (name == null || name.isBlank()) {
             throw new UiActionException("Tournament name cannot be empty");
@@ -344,20 +397,12 @@ public class TournamentApplicationService {
         }
     }
 
-    private void validatePlayerName(Tournament tournament, String playerName) {
-        if (playerName == null || playerName.isBlank()) {
-            throw new UiActionException("Player name cannot be empty");
-        }
-        String normalizedName = playerName.trim().toLowerCase(Locale.ROOT);
-        boolean duplicate = tournament.getPlayers().stream()
-                .map(Player::name)
-                .map(name -> name.toLowerCase(Locale.ROOT))
-                .anyMatch(normalizedName::equals);
-        if (duplicate) {
-            throw new UiActionException("Player names must be unique");
-        }
-    }
-
+    /**
+     * Validates a batch of selected players before adding any of them.
+     *
+     * <p>The method checks the whole batch up front so a failed add does not
+     * leave the tournament partially modified.</p>
+     */
     private void validatePlayersForTournament(Tournament tournament, List<Player> playersToAdd) {
         if (playersToAdd == null || playersToAdd.isEmpty()) {
             throw new UiActionException("Select at least one player");
@@ -383,6 +428,9 @@ public class TournamentApplicationService {
         }
     }
 
+    /**
+     * Adds players found in saved tournaments to the global directory when missing.
+     */
     private boolean importTournamentPlayers() {
         boolean changed = false;
         for (Tournament tournament : tournaments) {
@@ -395,6 +443,9 @@ public class TournamentApplicationService {
         return changed;
     }
 
+    /**
+     * Stores a player in the global directory only when neither ID nor name already exists.
+     */
     private boolean addPlayerToDirectoryIfMissing(Player player) {
         if (playerDirectory.findById(player.playerId()).isPresent()) {
             return false;
@@ -406,6 +457,9 @@ public class TournamentApplicationService {
         return true;
     }
 
+    /**
+     * Persists the player directory and translates IO errors into UI-friendly errors.
+     */
     private void savePlayerDirectory() {
         try {
             playerDirectoryRepository.save(playerDirectory);
@@ -414,6 +468,9 @@ public class TournamentApplicationService {
         }
     }
 
+    /**
+     * Converts a tournament aggregate into the full details view model.
+     */
     private TournamentDetails toDetails(Tournament tournament) {
         return new TournamentDetails(
                 tournament.getName(),
@@ -429,6 +486,9 @@ public class TournamentApplicationService {
         );
     }
 
+    /**
+     * Converts a tournament aggregate into the compact list item view model.
+     */
     private TournamentSummary toSummary(Tournament tournament) {
         return new TournamentSummary(
                 tournament,
@@ -440,6 +500,9 @@ public class TournamentApplicationService {
         );
     }
 
+    /**
+     * Converts a domain round into table-friendly match rows.
+     */
     private RoundView toRoundView(Round round, Tournament tournament) {
         List<Match> matches = round.getMatches();
         List<MatchView> matchViews = new ArrayList<>();
@@ -472,6 +535,9 @@ public class TournamentApplicationService {
         return new RoundView(round.getRoundNumber(), round.isFinished(), round.hasDraws(), List.copyOf(matchViews));
     }
 
+    /**
+     * Maps a tie-break winner to the one-based selector index used by the result dialog.
+     */
     private Integer getTieBreakWinnerIndex(Match match) {
         Player tieBreakWinner = match.getTieBreakWinner();
         if (tieBreakWinner == null) {
@@ -486,6 +552,9 @@ public class TournamentApplicationService {
         return null;
     }
 
+    /**
+     * Ensures that UI actions operate only on tournaments managed by this service instance.
+     */
     private Tournament requireTournament(Tournament tournament) {
         if (tournament == null || !tournaments.contains(tournament)) {
             throw new UiActionException("Tournament not found");
@@ -493,6 +562,9 @@ public class TournamentApplicationService {
         return tournament;
     }
 
+    /**
+     * Finds a round by its one-based round number.
+     */
     private Round findRound(Tournament tournament, int roundNumber) {
         return tournament.getRounds().stream()
                 .filter(round -> round.getRoundNumber() == roundNumber)
@@ -500,6 +572,9 @@ public class TournamentApplicationService {
                 .orElseThrow(() -> new UiActionException("Round not found"));
     }
 
+    /**
+     * Finds a match by its zero-based index inside a round.
+     */
     private Match findMatch(Round round, int matchIndex) {
         if (matchIndex < 0 || matchIndex >= round.getMatches().size()) {
             throw new UiActionException("Match not found");

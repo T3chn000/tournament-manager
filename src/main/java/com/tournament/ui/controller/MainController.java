@@ -44,6 +44,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Main JavaFX controller for the application workspace.
+ *
+ * <p>It wires UI events to {@link TournamentApplicationService}, refreshes
+ * tournament/player views, and opens the supporting dialogs.</p>
+ */
 public class MainController {
     private final TournamentApplicationService applicationService = new TournamentApplicationService();
 
@@ -81,6 +87,9 @@ public class MainController {
     private Tournament selectedTournament;
     private TournamentDetails selectedDetails;
 
+    /**
+     * Connects table/list bindings and loads persisted data after FXML injection.
+     */
     @FXML
     private void initialize() {
         configureTournamentList();
@@ -96,6 +105,9 @@ public class MainController {
         refreshGlobalViews();
     }
 
+    /**
+     * Starts the two-step tournament creation flow: metadata first, player selection second.
+     */
     @FXML
     private void onNewTournament() {
         try {
@@ -139,6 +151,9 @@ public class MainController {
         }
     }
 
+    /**
+     * Confirms and deletes the currently selected tournament.
+     */
     @FXML
     private void onDeleteTournament() {
         if (selectedDetails == null) {
@@ -166,6 +181,9 @@ public class MainController {
         }
     }
 
+    /**
+     * Opens player selection for adding players to a not-yet-started tournament.
+     */
     @FXML
     private void onAddPlayer() {
         if (selectedDetails == null) {
@@ -187,26 +205,41 @@ public class MainController {
         }
     }
 
+    /**
+     * Starts the selected tournament.
+     */
     @FXML
     private void onStartTournament() {
         runSelectedAction(() -> applicationService.startTournament(selectedTournament), "Tournament started");
     }
 
+    /**
+     * Generates the next round for the selected tournament.
+     */
     @FXML
     private void onNextRound() {
         runSelectedAction(() -> applicationService.generateNextRound(selectedTournament), "Next round generated");
     }
 
+    /**
+     * Simulates the currently active round.
+     */
     @FXML
     private void onSimulateRound() {
         runSelectedAction(() -> applicationService.simulateCurrentRound(selectedTournament), "Current round simulated");
     }
 
+    /**
+     * Runs automatic simulation until the tournament finishes.
+     */
     @FXML
     private void onSimulateTournament() {
         runSelectedAction(() -> applicationService.simulateTournament(selectedTournament), "Tournament simulated");
     }
 
+    /**
+     * Adds a player to the global player base.
+     */
     @FXML
     private void onAddGlobalPlayer() {
         TextInputDialog dialog = new TextInputDialog();
@@ -229,6 +262,9 @@ public class MainController {
                 });
     }
 
+    /**
+     * Renames the selected player in the global player base.
+     */
     @FXML
     private void onRenameGlobalPlayer() {
         PlayerRow selected = globalPlayersTable.getSelectionModel().getSelectedItem();
@@ -262,6 +298,9 @@ public class MainController {
                 });
     }
 
+    /**
+     * Configures the tournament list cell text and selection listener.
+     */
     private void configureTournamentList() {
         tournamentListView.setCellFactory(list -> new ListCell<>() {
             @Override
@@ -289,6 +328,9 @@ public class MainController {
         });
     }
 
+    /**
+     * Configures the table that shows players of the selected tournament.
+     */
     private void configurePlayersTable() {
         playerNumberColumn.setCellValueFactory(cell -> new SimpleStringProperty(
                 String.valueOf(playersTable.getItems().indexOf(cell.getValue()) + 1)
@@ -298,6 +340,9 @@ public class MainController {
         playersTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
     }
 
+    /**
+     * Configures ranking table columns.
+     */
     private void configureRankingTable() {
         placeColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().place())));
         rankingPlayerColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().playerName()));
@@ -310,6 +355,9 @@ public class MainController {
         rankingTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
     }
 
+    /**
+     * Configures the global player-base table.
+     */
     private void configureGlobalPlayersTable() {
         globalPlayerNumberColumn.setCellValueFactory(cell -> new SimpleStringProperty(
                 String.valueOf(globalPlayersTable.getItems().indexOf(cell.getValue()) + 1)
@@ -319,6 +367,9 @@ public class MainController {
         globalPlayersTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
     }
 
+    /**
+     * Reloads tournament summaries and restores a requested selection when possible.
+     */
     private void refreshTournamentList(Tournament tournamentToSelect) {
         tournamentListView.setItems(FXCollections.observableArrayList(applicationService.getTournaments()));
         if (tournamentToSelect != null) {
@@ -334,10 +385,16 @@ public class MainController {
         }
     }
 
+    /**
+     * Refreshes views backed by the global player directory.
+     */
     private void refreshGlobalViews() {
         globalPlayersTable.setItems(FXCollections.observableArrayList(applicationService.getPlayers()));
     }
 
+    /**
+     * Opens the reusable player-selection dialog and returns its controller only when confirmed.
+     */
     private Optional<PlayerSelectionDialogController> openPlayerSelectionDialog(String title, int minimumSelectionCount, Set<UUID> excludedPlayerIds) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/PlayerSelectionDialog.fxml"));
@@ -363,6 +420,9 @@ public class MainController {
         }
     }
 
+    /**
+     * Combines selected existing players and newly typed names into domain players.
+     */
     private List<Player> toPlayers(PlayerSelectionDialogController selection) {
         List<Player> players = new ArrayList<>(selection.getSelectedPlayers());
         selection.getNewPlayerNames().stream()
@@ -371,6 +431,9 @@ public class MainController {
         return List.copyOf(players);
     }
 
+    /**
+     * Selects the first tournament when available or shows the empty state.
+     */
     private void selectDefaultOrEmpty() {
         if (!tournamentListView.getItems().isEmpty()) {
             tournamentListView.getSelectionModel().select(0);
@@ -379,6 +442,9 @@ public class MainController {
         }
     }
 
+    /**
+     * Renders the selected tournament details and enables/disables related actions.
+     */
     private void showTournament(Tournament tournament) {
         selectedTournament = tournament;
         selectedDetails = applicationService.getDetails(tournament);
@@ -401,6 +467,9 @@ public class MainController {
         detailsPane.setManaged(true);
     }
 
+    /**
+     * Clears selection-dependent UI when no tournament is selected.
+     */
     private void showEmptyState() {
         selectedDetails = null;
         selectedTournament = null;
@@ -411,6 +480,9 @@ public class MainController {
         deleteButton.setDisable(true);
     }
 
+    /**
+     * Rebuilds the round panels from the current tournament details.
+     */
     private void renderRounds() {
         roundsContainer.getChildren().clear();
         if (selectedDetails.rounds().isEmpty()) {
@@ -427,6 +499,9 @@ public class MainController {
         }
     }
 
+    /**
+     * Creates a table for one round, including the per-match edit action.
+     */
     private TableView<MatchView> createMatchesTable(RoundView round) {
         TableView<MatchView> table = new TableView<>();
         table.setItems(FXCollections.observableArrayList(round.matches()));
@@ -441,7 +516,7 @@ public class MainController {
         TableColumn<MatchView, String> winner = textColumn("Winner", MatchView::winnerName);
         TableColumn<MatchView, Void> action = new TableColumn<>("Action");
         action.setCellFactory(column -> new TableCell<>() {
-            private final Button button = new Button("Set result");
+            private final Button button = new Button("Set result"); //Reused cell button
 
             {
                 button.getStyleClass().add("table-action-button");
@@ -475,12 +550,18 @@ public class MainController {
         return table;
     }
 
+    /**
+     * Creates a simple text column backed by a {@link MatchView} text extractor.
+     */
     private TableColumn<MatchView, String> textColumn(String title, TextExtractor extractor) {
         TableColumn<MatchView, String> column = new TableColumn<>(title);
         column.setCellValueFactory(cell -> new SimpleStringProperty(extractor.text(cell.getValue())));
         return column;
     }
 
+    /**
+     * Opens the score editor and applies the result when the user confirms it.
+     */
     private void openMatchResultDialog(int roundNumber, MatchView match) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MatchResultDialog.fxml"));
@@ -516,6 +597,9 @@ public class MainController {
         }
     }
 
+    /**
+     * Enables actions only when the selected tournament is in a compatible state.
+     */
     private void updateActionStates() {
         boolean hasSelection = selectedDetails != null;
         boolean created = hasSelection && selectedDetails.state() == TournamentState.CREATED;
@@ -531,12 +615,18 @@ public class MainController {
         simulateTournamentButton.setDisable(!started);
     }
 
+    /**
+     * Creates a scene with the shared application stylesheet attached.
+     */
     private Scene createStyledScene(Parent root) {
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getClass().getResource("/css/app.css").toExternalForm());
         return scene;
     }
 
+    /**
+     * Applies common styling to add/rename player dialogs.
+     */
     private void styleManagePlayerDialog(TextInputDialog dialog, String primaryButtonText) {
         DialogPane dialogPane = styleDialog(dialog, "add-player-dialog", 380, 360);
 
@@ -545,6 +635,9 @@ public class MainController {
         okButton.getStyleClass().add("primary-button");
     }
 
+    /**
+     * Applies application styling and danger button treatment to delete confirmation.
+     */
     private void styleDeleteTournamentDialog(Alert dialog, ButtonType deleteType) {
         DialogPane dialogPane = styleDialog(dialog, "delete-tournament-dialog", 420, 400);
 
@@ -552,6 +645,9 @@ public class MainController {
         deleteButton.getStyleClass().add("danger-button");
     }
 
+    /**
+     * Applies shared styling to standard JavaFX dialogs and removes default graphics.
+     */
     private DialogPane styleDialog(Dialog<?> dialog, String styleClass, double prefWidth, double minWidth) {
         TournamentManagerApp.applyApplicationIcon(dialog);
 
@@ -570,6 +666,9 @@ public class MainController {
         return dialogPane;
     }
 
+    /**
+     * Runs an action only when a tournament is selected.
+     */
     private void runSelectedAction(Runnable action, String successMessage) {
         if (selectedDetails == null) {
             return;
@@ -577,6 +676,9 @@ public class MainController {
         handleAction(action, successMessage);
     }
 
+    /**
+     * Executes a UI action, persists changed data and refreshes visible views.
+     */
     private void handleAction(Runnable action, String successMessage) {
         try {
             Tournament tournamentToSelect = selectedTournament;
@@ -595,11 +697,17 @@ public class MainController {
         }
     }
 
+    /**
+     * Shows a non-error status message in the bottom bar.
+     */
     private void setStatus(String message) {
         statusLabel.getStyleClass().remove("error-text");
         statusLabel.setText(message);
     }
 
+    /**
+     * Shows a user-facing error message in the bottom bar.
+     */
     private void showError(String message) {
         if (!statusLabel.getStyleClass().contains("error-text")) {
             statusLabel.getStyleClass().add("error-text");

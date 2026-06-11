@@ -6,13 +6,21 @@ import com.tournament.service.TournamentService;
 
 import java.util.*;
 
+/**
+ * Simple console UI for managing tournaments.
+ *
+ * <p>The JavaFX application is the primary UI, but this controller remains
+ * useful for quick manual testing from the command line.</p>
+ */
 public class TournamentController {
-
     private final Scanner scanner = new Scanner(System.in);
     private final TournamentService service = new TournamentService();
     private final TournamentRepository repository = new TournamentRepository();
     private final List<Tournament> tournaments = new ArrayList<>();
 
+    /**
+     * Starts the console menu loop.
+     */
     public void start() {
         System.out.println("Loading saved tournaments...");
         loadTournaments();
@@ -42,6 +50,9 @@ public class TournamentController {
         }
     }
 
+    /**
+     * Lets the user choose one tournament and save it to disk.
+     */
     private void saveTournament() {
         if (tournaments.isEmpty()) {
             System.out.println("No tournaments to save.");
@@ -58,6 +69,9 @@ public class TournamentController {
         saveManagedTournament(t);
     }
 
+    /**
+     * Persists a tournament and prints a short console result message.
+     */
     private void saveManagedTournament(Tournament t) {
         try {
             repository.save(t);
@@ -67,6 +81,9 @@ public class TournamentController {
         }
     }
 
+    /**
+     * Reloads all saved tournaments into the in-memory console list.
+     */
     private void loadTournaments() {
         try {
             List<Tournament> loaded = repository.load();
@@ -78,6 +95,9 @@ public class TournamentController {
         }
     }
 
+    /**
+     * Prints the top-level console menu.
+     */
     private void printMenu() {
         System.out.println("\n=== TOURNAMENT MANAGER ===");
 
@@ -89,6 +109,9 @@ public class TournamentController {
         System.out.print("Choose: ");
     }
 
+    /**
+     * Collects tournament data from the console and creates a new tournament.
+     */
     private void createTournament() {
         System.out.print("Tournament name: ");
         String name = scanner.nextLine();
@@ -129,6 +152,9 @@ public class TournamentController {
         printTournamentDetails(t);
     }
 
+    /**
+     * Reads the tournament type from console input.
+     */
     private TournamentType chooseType() {
         System.out.println("Choose type:");
         System.out.println("1. SWISS");
@@ -148,6 +174,9 @@ public class TournamentController {
         }
     }
 
+    /**
+     * Prints all tournaments currently loaded in memory.
+     */
     private void listTournaments() {
         if (tournaments.isEmpty()) {
             System.out.println("No tournaments.");
@@ -159,6 +188,9 @@ public class TournamentController {
         }
     }
 
+    /**
+     * Deletes a tournament from the in-memory console list.
+     */
     private void deleteTournament() {
         if (tournaments.isEmpty()) {
             System.out.println("No tournaments.");
@@ -176,6 +208,9 @@ public class TournamentController {
         System.out.println("Deleted.");
     }
 
+    /**
+     * Opens the management menu for a selected tournament.
+     */
     private void manageTournament() {
         if (tournaments.isEmpty()) {
             System.out.println("No tournaments.");
@@ -211,6 +246,9 @@ public class TournamentController {
         }
     }
 
+    /**
+     * Prints actions available for a selected tournament.
+     */
     private void printManageMenu() {
         System.out.println("\n=== MANAGE ===");
         System.out.println("1. Add player");
@@ -223,6 +261,9 @@ public class TournamentController {
         System.out.println("0. Back");
     }
 
+    /**
+     * Adds a player to a tournament while it is still editable.
+     */
     private void addPlayer(Tournament t) {
         if (t.isStarted()) {
             System.out.println("Cannot add players after start!");
@@ -240,6 +281,9 @@ public class TournamentController {
         }
     }
 
+    /**
+     * Starts a selected tournament from the console flow.
+     */
     private void startTournament(Tournament t) {
         if (t.getPlayers().size() < 2) {
             System.out.println("Not enough players!");
@@ -254,6 +298,9 @@ public class TournamentController {
         }
     }
 
+    /**
+     * Generates and simulates the next round for console usage.
+     */
     private void nextRound(Tournament t) {
         try {
             Round round = service.generateNextRound(t);
@@ -267,6 +314,9 @@ public class TournamentController {
         }
     }
 
+    /**
+     * Runs automatic simulation for the selected console tournament.
+     */
     private void simulateTournament(Tournament t) {
         if (t.getState() == TournamentState.CREATED) {
             System.out.println("Start tournament first!");
@@ -292,6 +342,9 @@ public class TournamentController {
         }
     }
 
+    /**
+     * Prints all generated rounds.
+     */
     private void showRounds(Tournament t) {
         if (t.getRounds().isEmpty()) {
             System.out.println("No rounds yet.");
@@ -301,6 +354,9 @@ public class TournamentController {
         t.getRounds().forEach(System.out::println);
     }
 
+    /**
+     * Prints registered tournament players.
+     */
     private void showPlayers(Tournament t) {
         System.out.println("Players:");
         List<Player> players = t.getPlayers();
@@ -310,6 +366,9 @@ public class TournamentController {
         }
     }
 
+    /**
+     * Prints a compact summary of one tournament and its current round.
+     */
     private void printTournamentDetails(Tournament t) {
         System.out.println(t);
         showPlayers(t);
@@ -319,6 +378,9 @@ public class TournamentController {
         }
     }
 
+    /**
+     * Checks whether a console-selected tournament index exists.
+     */
     private boolean isValidIndex(int i) {
         if (i < 0 || i >= tournaments.size()) {
             System.out.println("Invalid index");
@@ -327,6 +389,9 @@ public class TournamentController {
         return true;
     }
 
+    /**
+     * Reads the next valid integer from the scanner.
+     */
     private int readInt() {
         while (!scanner.hasNextInt()) {
             System.out.println("Enter number!");

@@ -39,7 +39,7 @@
                                 <VBox spacing="8.0" styleClass="side-panel">
                                     <children>
                                         <Label styleClass="section-title" text="Tournaments" />
-                                        <ListView fx:id="tournamentListView" styleClass="tournament-list" VBox.vgrow="ALWAYS" />
+                                        <ListView fx:id="tournamentListView" VBox.vgrow="ALWAYS" />
                                     </children>
                                     <padding>
                                         <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />

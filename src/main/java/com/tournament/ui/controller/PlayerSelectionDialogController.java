@@ -14,6 +14,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Controller for selecting existing players and entering new player names.
+ *
+ * <p>The dialog returns existing {@link Player} instances separately from new
+ * names so the application service can decide how to persist them.</p>
+ */
 public class PlayerSelectionDialogController {
     @FXML private TextField playerNameField;
     @FXML private ListView<Player> availablePlayersListView;
@@ -27,20 +33,39 @@ public class PlayerSelectionDialogController {
     private Set<UUID> excludedPlayerIds = Set.of();
     private final List<Player> availablePlayers = new ArrayList<>();
 
+    /**
+     * Configures list rendering after FXML fields are injected.
+     */
     @FXML
     private void initialize() {
         configurePlayerList(availablePlayersListView);
         configurePlayerList(selectedPlayersListView);
     }
 
+    /**
+     * Sets the stage owned by this dialog controller.
+     *
+     * @param dialogStage dialog stage to close after user action
+     */
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
     }
 
+    /**
+     * Sets the minimum total count of selected and newly entered players.
+     *
+     * @param minimumSelectionCount required count
+     */
     public void setMinimumSelectionCount(int minimumSelectionCount) {
         this.minimumSelectionCount = Math.max(0, minimumSelectionCount);
     }
 
+    /**
+     * Configures selectable players and players that should be hidden.
+     *
+     * @param players available player base
+     * @param excludedPlayerIds identifiers that should not be selectable
+     */
     public void setPlayers(List<Player> players, Set<UUID> excludedPlayerIds) {
         availablePlayers.clear();
         if (players != null) {
@@ -50,18 +75,36 @@ public class PlayerSelectionDialogController {
         refreshAvailablePlayers();
     }
 
+    /**
+     * Indicates whether the user accepted the dialog selection.
+     *
+     * @return {@code true} when the user confirmed selected players
+     */
     public boolean isConfirmed() {
         return confirmed;
     }
 
+    /**
+     * Returns existing players selected by the user.
+     *
+     * @return selected existing players
+     */
     public List<Player> getSelectedPlayers() {
         return List.copyOf(selectedPlayersListView.getItems());
     }
 
+    /**
+     * Returns new player names entered by the user.
+     *
+     * @return names that should be created as new players
+     */
     public List<String> getNewPlayerNames() {
         return List.copyOf(newPlayersListView.getItems());
     }
 
+    /**
+     * Adds a typed name either as an existing matching player or as a new player name.
+     */
     @FXML
     private void onQuickAddPlayer() {
         String playerName = playerNameField.getText() == null ? "" : playerNameField.getText().trim();
@@ -81,6 +124,9 @@ public class PlayerSelectionDialogController {
         setError("");
     }
 
+    /**
+     * Moves the highlighted existing player to the selected list.
+     */
     @FXML
     private void onAddSelectedPlayer() {
         Player selected = availablePlayersListView.getSelectionModel().getSelectedItem();
@@ -89,6 +135,9 @@ public class PlayerSelectionDialogController {
         }
     }
 
+    /**
+     * Removes an existing player from the selected list and makes it selectable again.
+     */
     @FXML
     private void onRemoveSelectedPlayer() {
         int selectedIndex = selectedPlayersListView.getSelectionModel().getSelectedIndex();
@@ -98,6 +147,9 @@ public class PlayerSelectionDialogController {
         }
     }
 
+    /**
+     * Removes a typed new player name from the pending list.
+     */
     @FXML
     private void onRemoveNewPlayer() {
         int selectedIndex = newPlayersListView.getSelectionModel().getSelectedIndex();
@@ -106,6 +158,9 @@ public class PlayerSelectionDialogController {
         }
     }
 
+    /**
+     * Confirms the selection after checking the minimum required player count.
+     */
     @FXML
     private void onConfirm() {
         int selectedCount = selectedPlayersListView.getItems().size() + newPlayersListView.getItems().size();
@@ -118,12 +173,18 @@ public class PlayerSelectionDialogController {
         dialogStage.close();
     }
 
+    /**
+     * Closes the dialog without returning a selection.
+     */
     @FXML
     private void onCancel() {
         confirmed = false;
         dialogStage.close();
     }
 
+    /**
+     * Adds one existing player to the selected list while respecting exclusions.
+     */
     private void addSelectedPlayer(Player player) {
         if (excludedPlayerIds.contains(player.playerId())) {
             setError("Player already exists in tournament");
@@ -135,6 +196,9 @@ public class PlayerSelectionDialogController {
         setError("");
     }
 
+    /**
+     * Rebuilds the available-player list after selection or exclusion changes.
+     */
     private void refreshAvailablePlayers() {
         List<UUID> selectedIds = selectedPlayersListView == null
                 ? List.of()
@@ -146,6 +210,9 @@ public class PlayerSelectionDialogController {
         availablePlayersListView.setItems(FXCollections.observableArrayList(selectablePlayers));
     }
 
+    /**
+     * Formats player list cells with display name and short identifier.
+     */
     private void configurePlayerList(ListView<Player> listView) {
         listView.setCellFactory(list -> new ListCell<>() {
             @Override
@@ -156,6 +223,9 @@ public class PlayerSelectionDialogController {
         });
     }
 
+    /**
+     * Shows validation feedback inside the dialog.
+     */
     private void setError(String message) {
         errorLabel.setText(message);
     }

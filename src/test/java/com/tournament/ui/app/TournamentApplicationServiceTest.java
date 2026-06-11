@@ -41,21 +41,17 @@ class TournamentApplicationServiceTest {
     }
 
     @Test
-    void shouldReuseSamePlayerIdWhenCreatingTournamentsFromSameName() {
+    void shouldReuseSelectedPlayerInMultipleCreatedTournaments() {
         TournamentApplicationService service = createService();
+        Player alice = service.createPlayer("Alice");
+        Player bob = service.createPlayer("Bob");
+        Player charlie = service.createPlayer("Charlie");
 
-        Tournament first = service.createTournament("First", TournamentType.SWISS, List.of("Alice", "Bob"));
-        Tournament second = service.createTournament("Second", TournamentType.KNOCKOUT, List.of(" alice ", "Charlie"));
+        Tournament first = service.createTournamentWithPlayers("First", TournamentType.SWISS, List.of(alice, bob));
+        Tournament second = service.createTournamentWithPlayers("Second", TournamentType.KNOCKOUT, List.of(alice, charlie));
 
-        Player firstAlice = first.getPlayers().stream()
-                .filter(player -> player.name().equals("Alice"))
-                .findFirst()
-                .orElseThrow();
-        Player secondAlice = second.getPlayers().stream()
-                .filter(player -> player.name().equals("Alice"))
-                .findFirst()
-                .orElseThrow();
-        assertEquals(firstAlice.playerId(), secondAlice.playerId());
+        assertTrue(first.getPlayers().contains(alice));
+        assertTrue(second.getPlayers().contains(alice));
         assertEquals(3, service.getPlayers().size());
     }
 
@@ -68,8 +64,8 @@ class TournamentApplicationServiceTest {
         Tournament first = service.createTournamentWithPlayers("First", TournamentType.SWISS, List.of(alice, bob));
         Tournament second = service.createTournamentWithPlayers("Second", TournamentType.SWISS, List.of(bob, charlie));
 
-        service.addPlayer(first, charlie);
-        service.addPlayer(second, alice);
+        service.addPlayers(first, List.of(charlie));
+        service.addPlayers(second, List.of(alice));
 
         assertTrue(first.getPlayers().contains(charlie));
         assertTrue(second.getPlayers().contains(alice));
@@ -82,7 +78,7 @@ class TournamentApplicationServiceTest {
         Player bob = service.createPlayer("Bob");
         Tournament tournament = service.createTournamentWithPlayers("Cup", TournamentType.SWISS, List.of(alice, bob));
 
-        UiActionException exception = assertThrows(UiActionException.class, () -> service.addPlayer(tournament, alice));
+        UiActionException exception = assertThrows(UiActionException.class, () -> service.addPlayers(tournament, List.of(alice)));
 
         assertEquals("Player already exists in tournament", exception.getMessage());
     }
@@ -109,7 +105,7 @@ class TournamentApplicationServiceTest {
         Player duplicateAlice = new Player(" alice ");
         Tournament tournament = service.createTournamentWithPlayers("Cup", TournamentType.SWISS, List.of(alice, bob));
 
-        UiActionException exception = assertThrows(UiActionException.class, () -> service.addPlayer(tournament, duplicateAlice));
+        UiActionException exception = assertThrows(UiActionException.class, () -> service.addPlayers(tournament, List.of(duplicateAlice)));
 
         assertEquals("Player names must be unique", exception.getMessage());
     }
