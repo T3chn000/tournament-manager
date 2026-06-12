@@ -1,159 +1,175 @@
 # Tournament Manager
 
-Tournament Manager is a Java desktop application for running Swiss and knockout tournaments. The project includes domain logic, automatic pairing generation, result tracking, player rankings, JSON persistence, and a JavaFX user interface.
-
-## Screenshot
-
-[Tournament Manager - main view](docs/images/app_screenshot.png)
+A modern Java desktop application for organizing and running Swiss and knockout tournaments. Features automatic pairing generation, match result tracking, player rankings, and persistent JSON-based tournament storage.
 
 ## Features
 
-- create tournaments with a custom player list,
-- support for `SWISS` and `KNOCKOUT` tournament formats,
-- automatic round generation,
-- `BYE` handling for an odd number of players,
-- entering and editing match results,
-- tie-break winner selection for knockout draws,
-- current round simulation and full knockout tournament simulation,
-- ranking table with points, wins, draws, losses, played matches, and BYE count,
-- JSON-based tournament save/load,
-- unit tests for the model, pairing strategies, service layer, repository, and serialization format.
+- **Tournament Formats:**
+  - Swiss tournaments with intelligent pairing based on player ratings
+  - Single-elimination knockout tournaments with bracket advancement
+  - BYE handling for odd number of participants
+  - Tie-break winner selection for knockout draws
+  
+- **Smart Pairing & Generation:**
+  - Automatic round generation
+  - Repeated pairing avoidance in Swiss format
+  - Configurable tournament simulation (current round and full tournament preview)
 
-## Technologies
+- **Match Management:**
+  - Enter and edit match results
+  - Track wins, draws, losses, and BYE rounds
+  - Dynamic ranking table with comprehensive statistics
 
-- Java 25,
-- JavaFX 25,
-- Maven,
-- JUnit 5,
-- Jackson Databind.
+- **Data & Persistence:**
+  - JSON-based tournament save/load
+  - Only essential state is persisted (derived fields are recalculated)
+  - Comprehensive unit tests for all core modules
 
-## Requirements
+## Quick Start
 
-Before running the project, make sure you have installed:
+### Requirements
 
-- JDK 25,
-- Maven 3.9 or newer.
+- **JDK 25** or newer
+- **Maven 3.9** or newer
 
-Check your versions:
+Verify your installation:
 
 ```bash
 java --version
 mvn --version
 ```
 
-## Running The Application
+### Running the Application
 
-JavaFX graphical interface:
+Launch the JavaFX UI:
 
 ```bash
 mvn javafx:run
 ```
 
-The project also contains an older console mode:
+Or use the legacy console interface:
 
 ```bash
 mvn exec:java -Dexec.mainClass="com.tournament.Main"
 ```
 
-If the console command does not work out of the box, add `exec-maven-plugin` to `pom.xml` or run `com.tournament.Main` directly from your IDE.
+## Testing
 
-## Tests
-
-Run the full test suite:
+Run the complete test suite:
 
 ```bash
 mvn test
 ```
 
-The current tests cover, among other things:
+**Test Coverage Includes:**
+- Domain model validation (`Player`, `Match`, `Round`, `Tournament`)
+- Swiss and knockout pairing strategies
+- Service layer behavior
+- Tournament persistence and serialization
+- JSON format integrity
 
-- validation for `Player`, `Match`, `Round`, and `Tournament`,
-- Swiss and Knockout pairing generation,
-- `TournamentService` behavior,
-- save/load behavior in `TournamentRepository`,
-- JSON serialization format.
+## Technologies
+
+| Component | Version |
+|-----------|---------|
+| **Java** | 25 |
+| **JavaFX** | 25.0.1 |
+| **JUnit** | 5.10.2 |
+| **Jackson** | 2.17.0 |
+| **Build Tool** | Maven 3.9+ |
 
 ## Project Structure
 
-```text
-src/main/java/com/tournament
-├── controller      # older console interface
-├── model           # tournament domain model
-├── pairing         # pairing generation strategies
-├── persistence     # tournament save/load logic
-├── service         # tournament operations
-└── ui              # JavaFX application
+### Java Source
+
+```
+src/main/java/com/tournament/
+├── controller/    # Legacy console interface
+├── model/         # Core tournament domain logic
+├── pairing/       # Pairing generation strategies (Swiss & Knockout)
+├── persistence/   # JSON serialization and file I/O
+├── service/       # Tournament operations and business logic
+└── ui/            # JavaFX GUI components
 ```
 
-JavaFX resources:
+### UI Resources
 
-```text
-src/main/resources
-├── css             # application styles
-└── fxml            # JavaFX views
+```
+src/main/resources/
+├── css/           # JavaFX stylesheets
+└── fxml/          # FXML layout files
 ```
 
-Application data is saved by default in:
+### Data Storage
 
-```text
-data/tournaments
+Tournaments are saved to:
+
+```
+data/tournaments/
 ```
 
 ## Tournament Rules
 
-### Swiss
+### Swiss Format
 
-In a Swiss tournament, players are paired according to their current point totals. The strategy avoids repeated pairings whenever possible. If the number of players is odd, one player receives a `BYE`.
+Players are paired based on current standings, with strategies to minimize repeated matchups:
 
-Scoring:
+**Scoring:**
+- Win: 2 points
+- Draw: 1 point
+- Loss: 0 points
+- BYE: 2 points
 
-- win: 2 points,
-- draw: 1 point,
-- loss: 0 points,
-- `BYE`: 2 points.
+**Key Mechanics:**
+- Pairing avoids repeated opponents when possible
+- Odd participant receives automatic BYE
+- Multiple rounds until determining clear winner
 
-### Knockout
+### Knockout Format
 
-In a knockout tournament, winners advance to the next round. If a match ends in a draw, a tie-break winner must be selected. If the number of players is not a power of two, the application adds `BYE` matches.
+Single-elimination bracket where winners advance to the next round:
 
-## Data Persistence
+**Advancement Rules:**
+- Win: advance to next round
+- Loss: eliminated
+- Draw: requires tie-break winner selection
+- Odd bracket size: leading participant(s) receive BYE
 
-Tournaments are saved as JSON files. Each file contains only the data needed to restore tournament state, including:
+**Scoring:**
+- Win: 2 points
+- Tie-break win: 2 points
+- Loss: 0 points
+- BYE: 2 points
 
-- tournament ID,
-- name,
-- player list,
-- rounds,
-- matches,
-- points,
-- result,
-- tie-break winner,
-- tournament type and state.
+## Development
 
-Derived fields, such as current ranking, match winner, or formatted score text, are recalculated by the application and do not need to be stored as separate data.
-
-## Useful Commands
-
-Compile:
+### Build Commands
 
 ```bash
+# Compile
 mvn compile
-```
 
-Run tests:
-
-```bash
+# Run tests
 mvn test
-```
 
-Clean build output:
-
-```bash
+# Clean build artifacts
 mvn clean
-```
 
-Run the UI:
-
-```bash
+# Launch UI
 mvn javafx:run
+
+# Package application
+mvn package
 ```
+
+## Data Format
+
+Tournaments persist as JSON files containing:
+- Tournament metadata (ID, name, type, state)
+- Player roster
+- Round and match records
+- Points and results
+- Tie-break selections
+
+Derived data (rankings, match winners, formatted scores) is regenerated on load.
+
