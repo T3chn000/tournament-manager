@@ -344,6 +344,9 @@ public class TournamentApplicationService {
     ) {
         tournament = requireTournament(tournament);
         Round round = findRound(tournament, roundNumber);
+        if (round != tournament.getCurrentRound()) {
+            throw new UiActionException("Only matches in the current round can be edited");
+        }
         Match match = findMatch(round, matchIndex);
 
         if (match.isByeMatch()) {
@@ -594,7 +597,9 @@ public class TournamentApplicationService {
             Match match = matches.get(i);
             String result = match.getResult() == null ? "not played" : match.getResult().name();
             String winner = match.getWinner() == null ? "-" : getDisplayName(match.getWinner());
-            boolean editable = tournament.getState() == TournamentState.STARTED && !match.isByeMatch();
+            boolean editable = tournament.getState() == TournamentState.STARTED
+                    && round == tournament.getCurrentRound()
+                    && !match.isByeMatch();
             String score = match.getScore();
             if (match.isDraw() && match.getTieBreakWinner() != null) {
                 score += " (OT)";
